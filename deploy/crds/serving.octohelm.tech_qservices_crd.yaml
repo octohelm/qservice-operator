@@ -1,0 +1,20 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: qservices.serving.octohelm.tech
+spec:
+  group: serving.octohelm.tech
+  scope: Namespaced
+  names:
+    kind: QService
+    listKind: QServiceList
+    plural: qservices
+    singular: qservice
+    shortNames:
+      - qsvc
+  subresources:
+    status: {}
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
