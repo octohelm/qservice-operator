@@ -1,6 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  namespace: octohelm
   name: qservice-operator
 spec:
   replicas: 1
@@ -15,16 +16,13 @@ spec:
       serviceAccountName: qservice-operator
       containers:
         - name: qservice-operator
-          # Replace this with the built image name
-          image: REPLACE_IMAGE
+          image: octohelm/qservice-operator:0.0.1
           command:
-          - qservice-operator
+            - qservice-operator
           imagePullPolicy: Always
           env:
             - name: WATCH_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
+              value: ""
             - name: POD_NAME
               valueFrom:
                 fieldRef:

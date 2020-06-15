@@ -1,0 +1,2 @@
+gen-deepcopy:
+	go run ./hack/tools.go deepcopy ./pkg/strfmt
