@@ -15,5 +15,9 @@ lint:
 	husky hook pre-commit
 	husky hook commit-msg
 
+release:
+	git push
+	git push origin v${VERSION}
+
 include Makefile.apply
 include Makefile.gen
