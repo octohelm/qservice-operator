@@ -5,6 +5,14 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.1.0](https://github.com/octohelm/qservice-operator/compare/v0.0.0...v0.1.0)
+
+### Features
+
+* **feat(controller/deployment):** to handle annotaions autoscaling.octohelm.tech/* to setup hpa ([6f2b740](https://github.com/octohelm/qservice-operator/commit/6f2b7400afea62bc848e79658d57652269410845))
+
+
+
 # 0.0.0
 
 ### Features
