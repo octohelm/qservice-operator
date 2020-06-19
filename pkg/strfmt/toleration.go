@@ -42,13 +42,15 @@ func ParseToleration(s string) (*Toleration, error) {
 	return t, nil
 }
 
-// openapi:strfmt toleration
 type Toleration struct {
 	Key               string
 	Value             string
 	Effect            string
 	TolerationSeconds *int64
 }
+
+func (Toleration) OpenAPISchemaType() []string { return []string{"string"} }
+func (Toleration) OpenAPISchemaFormat() string { return "toleration" }
 
 func (t *Toleration) UnmarshalText(text []byte) error {
 	to, err := ParseToleration(string(text))

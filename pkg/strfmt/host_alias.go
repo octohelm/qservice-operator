@@ -5,11 +5,13 @@ import (
 	"strings"
 )
 
-// openapi:strfmt host-alias
 type HostAlias struct {
 	IP        string
 	HostNames []string
 }
+
+func (HostAlias) OpenAPISchemaType() []string { return []string{"string"} }
+func (HostAlias) OpenAPISchemaFormat() string { return "host-alias" }
 
 // 127.0.0.1 test1.com,test2.com
 func ParseHostAlias(s string) (*HostAlias, error) {

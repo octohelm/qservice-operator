@@ -49,13 +49,15 @@ func ParseVolumeMount(s string) (*VolumeMount, error) {
 	return vm, nil
 }
 
-// openapi:strfmt volume-mount
 type VolumeMount struct {
 	Name      string
 	MountPath string
 	SubPath   string
 	ReadOnly  bool
 }
+
+func (VolumeMount) OpenAPISchemaType() []string { return []string{"string"} }
+func (VolumeMount) OpenAPISchemaFormat() string { return "volume-mount" }
 
 func (v VolumeMount) String() string {
 	buf := bytes.NewBufferString(v.Name)

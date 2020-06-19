@@ -37,13 +37,15 @@ func ParseIngress(s string) (*Ingress, error) {
 	return r, nil
 }
 
-// openapi:strfmt ingress-rule
 type Ingress struct {
 	Scheme string
 	Host   string
 	Path   string
 	Port   uint16
 }
+
+func (Ingress) OpenAPISchemaType() []string { return []string{"string"} }
+func (Ingress) OpenAPISchemaFormat() string { return "ingress" }
 
 func (r Ingress) String() string {
 	if r.Scheme == "" {

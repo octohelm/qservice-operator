@@ -27,7 +27,6 @@ func ParseImagePullSecret(uri string) (*ImagePullSecret, error) {
 	return endpoint, nil
 }
 
-// openapi:strfmt image-pull-secret
 type ImagePullSecret struct {
 	Name     string
 	Host     string
@@ -35,6 +34,9 @@ type ImagePullSecret struct {
 	Password string
 	Prefix   string
 }
+
+func (ImagePullSecret) OpenAPISchemaType() []string { return []string{"string"} }
+func (ImagePullSecret) OpenAPISchemaFormat() string { return "image-pull-secret" }
 
 func (s ImagePullSecret) SecretName() string {
 	return s.Name

@@ -50,10 +50,12 @@ func ParseAction(s string) (*Action, error) {
 	return a, nil
 }
 
-// openapi:strfmt action
 type Action struct {
 	v1.Handler
 }
+
+func (Action) OpenAPISchemaType() []string { return []string{"string"} }
+func (Action) OpenAPISchemaFormat() string { return "action" }
 
 func (a Action) String() string {
 	if a.Exec != nil {

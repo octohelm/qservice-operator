@@ -15,6 +15,7 @@ type QServiceSpec struct {
 	Ingresses   []strfmt.Ingress     `json:"ingresses,omitempty"`
 	Volumes     Volumes              `json:"volumes,omitempty"`
 	Resources   Resources            `json:"resources,omitempty"`
+	Strategy    *strfmt.Strategy     `json:"strategy,omitempty"`
 	Tolerations []strfmt.Toleration  `json:"tolerations,omitempty"`
 }
 

@@ -72,7 +72,6 @@ func ParsePortForward(s string) (*PortForward, error) {
 	}, nil
 }
 
-// openapi:strfmt port
 type PortForward struct {
 	AppProtocol   string
 	Port          uint16
@@ -80,6 +79,9 @@ type PortForward struct {
 	ContainerPort uint16
 	Protocol      string
 }
+
+func (PortForward) OpenAPISchemaType() []string { return []string{"string"} }
+func (PortForward) OpenAPISchemaFormat() string { return "port-forward" }
 
 func (s PortForward) String() string {
 	v := ""

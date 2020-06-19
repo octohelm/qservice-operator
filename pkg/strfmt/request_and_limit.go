@@ -38,12 +38,14 @@ func ParseRequestAndLimit(s string) (*RequestAndLimit, error) {
 	return rl, nil
 }
 
-// openapi:strfmt request-and-limit
 type RequestAndLimit struct {
 	Request int
 	Limit   int
 	Unit    string
 }
+
+func (RequestAndLimit) OpenAPISchemaType() []string { return []string{"string"} }
+func (RequestAndLimit) OpenAPISchemaFormat() string { return "request-and-limit" }
 
 func (s RequestAndLimit) String() string {
 	v := ""
