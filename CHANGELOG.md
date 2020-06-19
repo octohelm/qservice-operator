@@ -5,6 +5,14 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.1.1](https://github.com/octohelm/qservice-operator/compare/v0.1.0...v0.1.1)
+
+### Bug Fixes
+
+* **fix(controller/deployment):** only work in namespace with label autoscaling=enabled ([cce11b3](https://github.com/octohelm/qservice-operator/commit/cce11b35974ea803643b7a4b32c096482798aac8))
+
+
+
 # [0.1.0](https://github.com/octohelm/qservice-operator/compare/v0.0.0...v0.1.0)
 
 ### Features
