@@ -28,8 +28,10 @@ import (
 	autoscalingv2beta1 "k8s.io/api/autoscaling/v2beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -49,7 +51,8 @@ func Add(mgr manager.Manager) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcileDeployment{client: mgr.GetClient(), scheme: mgr.GetScheme()}
+	cs, _ := kubernetes.NewForConfig(mgr.GetConfig())
+	return &ReconcileDeployment{clusterClient: cs, client: mgr.GetClient(), scheme: mgr.GetScheme()}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
@@ -72,8 +75,9 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 var _ reconcile.Reconciler = &ReconcileDeployment{}
 
 type ReconcileDeployment struct {
-	client client.Client
-	scheme *runtime.Scheme
+	client        client.Client
+	clusterClient kubernetes.Interface
+	scheme        *runtime.Scheme
 }
 
 func (r *ReconcileDeployment) Reconcile(request reconcile.Request) (reconcile.Result, error) {
@@ -82,9 +86,17 @@ func (r *ReconcileDeployment) Reconcile(request reconcile.Request) (reconcile.Re
 
 	ctx := context.Background()
 
-	dep := &appsv1.Deployment{}
-	err := r.client.Get(ctx, request.NamespacedName, dep)
+	ok, err := r.autoScalingEnabledInNamespace(ctx, request.Namespace)
 	if err != nil {
+		return reconcile.Result{}, err
+	}
+
+	if !ok {
+		return reconcile.Result{}, nil
+	}
+
+	dep := &appsv1.Deployment{}
+	if err := r.client.Get(ctx, request.NamespacedName, dep); err != nil {
 		if errors.IsNotFound(err) {
 			if err := deleteHorizontalPodAutoscaler(ctx, r.client, request.NamespacedName); err != nil {
 				return reconcile.Result{}, nil
@@ -106,6 +118,14 @@ func (r *ReconcileDeployment) Reconcile(request reconcile.Request) (reconcile.Re
 	}
 
 	return reconcile.Result{}, nil
+}
+
+func (r *ReconcileDeployment) autoScalingEnabledInNamespace(ctx context.Context, namespace string) (bool, error) {
+	n, err := r.clusterClient.CoreV1().Namespaces().Get(ctx, namespace, metav1.GetOptions{})
+	if err != nil {
+		return false, err
+	}
+	return n.Labels["autoscaling"] == "enabled", nil
 }
 
 func deleteHorizontalPodAutoscaler(ctx context.Context, c client.Client, namespacedName types.NamespacedName) error {
