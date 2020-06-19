@@ -3,6 +3,9 @@ module github.com/octohelm/qservice-operator
 go 1.13
 
 require (
+	github.com/davecgh/go-spew v1.1.1
+	github.com/go-courier/ptr v1.0.1
+	github.com/go-courier/reflectx v1.3.4
 	github.com/onsi/gomega v1.9.0
 	github.com/operator-framework/operator-sdk v0.18.1
 	github.com/spf13/pflag v1.0.5

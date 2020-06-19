@@ -3,6 +3,7 @@ package qservice
 import (
 	"context"
 
+	"github.com/octohelm/qservice-operator/pkg/apiutil"
 	istiov1alpha3 "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -41,8 +42,8 @@ func applyDeployment(ctx context.Context, namespace string, deployment *appsv1.D
 		return c.Create(ctx, deployment)
 	}
 
-	if !isControllerResourceVersionEqual(current, deployment) {
-		return c.Patch(ctx, deployment, JSONPatch(types.StrategicMergePatchType))
+	if !isControllerGenerationEqual(current, deployment) {
+		return c.Patch(ctx, deployment, apiutil.JSONPatch(types.StrategicMergePatchType))
 	}
 
 	return nil
@@ -63,8 +64,8 @@ func applyIngress(ctx context.Context, namespace string, ingress *extensionsv1be
 		return c.Create(ctx, ingress)
 	}
 
-	if !isControllerResourceVersionEqual(current, ingress) {
-		return c.Patch(ctx, ingress, JSONPatch(types.StrategicMergePatchType))
+	if !isControllerGenerationEqual(current, ingress) {
+		return c.Patch(ctx, ingress, apiutil.JSONPatch(types.StrategicMergePatchType))
 	}
 
 	return nil
@@ -85,8 +86,8 @@ func applyService(ctx context.Context, namespace string, service *corev1.Service
 		return c.Create(ctx, service)
 	}
 
-	if !isControllerResourceVersionEqual(current, service) {
-		return c.Patch(ctx, service, JSONPatch(types.MergePatchType))
+	if !isControllerGenerationEqual(current, service) {
+		return c.Patch(ctx, service, apiutil.JSONPatch(types.MergePatchType))
 	}
 
 	return nil
@@ -107,8 +108,8 @@ func applyVirtualService(ctx context.Context, namespace string, vs *istiov1alpha
 		return c.Create(ctx, vs)
 	}
 
-	if !isControllerResourceVersionEqual(current, vs) {
-		return c.Patch(ctx, vs, JSONPatch(types.MergePatchType))
+	if !isControllerGenerationEqual(current, vs) {
+		return c.Patch(ctx, vs, apiutil.JSONPatch(types.MergePatchType))
 	}
 
 	return nil
@@ -129,8 +130,8 @@ func applySecret(ctx context.Context, namespace string, secret *corev1.Secret) e
 		return c.Create(ctx, secret)
 	}
 
-	if !isControllerResourceVersionEqual(current, secret) {
-		return c.Patch(ctx, secret, JSONPatch(types.MergePatchType))
+	if !isControllerGenerationEqual(current, secret) {
+		return c.Patch(ctx, secret, apiutil.JSONPatch(types.MergePatchType))
 	}
 
 	return nil

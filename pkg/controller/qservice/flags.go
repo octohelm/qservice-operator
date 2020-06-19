@@ -1,9 +1,9 @@
 package qservice
 
 var (
-	AnnotationImagePullSecret = "image-pull-secret"
-	LabelIstioInjection       = "istio-injection"
-	LabelIngressHost          = "ingress-host"
+	LabelIngressHost             = "ingress-host"
+	LabelIstioInjection          = "istio-injection"
+	AnnotationImageKeyPullSecret = "serving.octohelm.tech/imagePullSecret"
 )
 
 func FlagsFromNamespaceLabels(labels map[string]string) Flags {

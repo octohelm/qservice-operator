@@ -12,6 +12,7 @@ func ToDeployment(s *QService) *appsv1.Deployment {
 	d.Name = s.Name
 	d.Namespace = s.Namespace
 	d.Labels = cloneKV(s.Labels)
+	d.Annotations = cloneKV(s.Annotations)
 
 	d.Spec.Selector = &metav1.LabelSelector{
 		MatchLabels: map[string]string{

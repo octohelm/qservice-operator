@@ -14,6 +14,7 @@ import (
 	"github.com/octohelm/qservice-operator/pkg/strfmt"
 	istiov1alpha3 "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	appsv1 "k8s.io/api/apps/v1"
+	autoscalingv2beta1 "k8s.io/api/autoscaling/v2beta1"
 	corev1 "k8s.io/api/core/v1"
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -55,6 +56,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 
 	objects := []runtime.Object{
 		&appsv1.Deployment{},
+		&autoscalingv2beta1.HorizontalPodAutoscaler{},
 		&corev1.Service{},
 		&extensionsv1beta1.Ingress{},
 		&corev1.Secret{},
@@ -232,7 +234,6 @@ func (r *ReconcileQService) getFlagsFromNamespace(ctx context.Context, namespace
 	if err != nil {
 		return Flags{}, err
 	}
-
 	return FlagsFromNamespaceLabels(n.Labels), nil
 }
 
@@ -371,7 +372,7 @@ func (r *ReconcileQService) applyService(ctx context.Context, qsvc *servingv1alp
 }
 
 func (r *ReconcileQService) applyImagePullSecret(ctx context.Context, qsvc *servingv1alpha1.QService, flags *Flags) error {
-	if pullSecret, ok := qsvc.Annotations[AnnotationImagePullSecret]; ok {
+	if pullSecret, ok := qsvc.Annotations[AnnotationImageKeyPullSecret]; ok {
 		ips, err := strfmt.ParseImagePullSecret(pullSecret)
 		if err != nil {
 			return err
