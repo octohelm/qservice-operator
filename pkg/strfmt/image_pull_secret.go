@@ -38,11 +38,11 @@ type ImagePullSecret struct {
 func (ImagePullSecret) OpenAPISchemaType() []string { return []string{"string"} }
 func (ImagePullSecret) OpenAPISchemaFormat() string { return "image-pull-secret" }
 
-func (s ImagePullSecret) SecretName() string {
+func (s *ImagePullSecret) SecretName() string {
 	return s.Name
 }
 
-func (s ImagePullSecret) PrefixTag(tag string) string {
+func (s *ImagePullSecret) PrefixTag(tag string) string {
 	prefix := s.Host + s.Prefix
 
 	if len(strings.Split(tag, "/")) == 1 {

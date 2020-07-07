@@ -11,8 +11,8 @@ import (
 func toPodSpec(s *QService, pod Pod) v1.PodSpec {
 	podSpec := v1.PodSpec{}
 
-	if s.Spec.ImagePullPolicy != "" {
-		podSpec.ImagePullSecrets = []v1.LocalObjectReference{{Name: s.Spec.ImagePullPolicy}}
+	if s.Spec.ImagePullSecret != "" {
+		podSpec.ImagePullSecrets = []v1.LocalObjectReference{{Name: s.Spec.ImagePullSecret}}
 	}
 
 	podSpec.Volumes = toVolumes(s)
