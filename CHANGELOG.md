@@ -5,6 +5,14 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.1.2](https://github.com/octohelm/qservice-operator/compare/v0.1.1...v0.1.2)
+
+### Bug Fixes
+
+* **fix** image pull secret fix ([f52a5b0](https://github.com/octohelm/qservice-operator/commit/f52a5b06df1dd2bbf88e25675295a8ea01417481))
+
+
+
 # [0.1.1](https://github.com/octohelm/qservice-operator/compare/v0.1.0...v0.1.1)
 
 ### Bug Fixes
