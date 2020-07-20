@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
 	"reflect"
 	"strings"
 	"time"
@@ -269,14 +270,16 @@ func with(processes ...process) process {
 	}
 }
 
+var autoIngressHost = os.Getenv("AUTO_INGRESS_HOST")
+
 func (r *ReconcileQService) applyIngress(ctx context.Context, qsvc *servingv1alpha1.QService, flags *Flags) error {
-	if flags.HostBase != "" {
+	if autoIngressHost != "" {
 		exists := false
 
 		for i := range qsvc.Spec.Ingresses {
 			ingress := qsvc.Spec.Ingresses[i]
 
-			if strings.HasSuffix(ingress.Host, flags.HostBase) {
+			if strings.HasSuffix(ingress.Host, autoIngressHost) {
 				exists = true
 				break
 			}
@@ -291,7 +294,7 @@ func (r *ReconcileQService) applyIngress(ctx context.Context, qsvc *servingv1alp
 
 			qsvc.Spec.Ingresses = append(qsvc.Spec.Ingresses, strfmt.Ingress{
 				Scheme: "http",
-				Host:   fmt.Sprintf("%s---%s.%s", qsvc.Name, qsvc.Namespace, flags.HostBase),
+				Host:   fmt.Sprintf("%s---%s.%s", qsvc.Name, qsvc.Namespace, autoIngressHost),
 				Port:   port,
 			})
 		}

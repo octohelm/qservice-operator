@@ -4,8 +4,16 @@ apply-crd:
 apply-example:
 	kubectl apply --filename ./deploy/examples/service.yaml
 
+delete:
+	kubectl delete -f deploy
+
 apply:
-	kubectl apply -f deploy/service_account.yaml
-	kubectl apply -f deploy/role.yaml
-	kubectl apply -f deploy/role_binding.yaml
-	kubectl apply -f deploy/operator.yaml
+	kubectl apply -f deploy
+
+test.apply: apply
+	kubectl apply --filename ./deploy/examples/service.yaml
+	kubectl get deployments -n default | grep srv-test
+
+test.delete:
+	kubectl delete --filename ./deploy/examples/service.yaml
+	kubectl get deployments -n default | grep srv-test
