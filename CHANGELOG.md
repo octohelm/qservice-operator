@@ -5,6 +5,14 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.2.1](https://github.com/octohelm/qservice-operator/compare/v0.2.0...v0.2.1)
+
+### Bug Fixes
+
+* **fix** support multi auto ingress hosts ([65289d4](https://github.com/octohelm/qservice-operator/commit/65289d4cbe00da060707c88dd112d631b7bfb8f9))
+
+
+
 # [0.2.0](https://github.com/octohelm/qservice-operator/compare/v0.1.2...v0.2.0)
 
 ### Features
