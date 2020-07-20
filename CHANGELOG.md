@@ -5,6 +5,14 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.2.0](https://github.com/octohelm/qservice-operator/compare/v0.1.2...v0.2.0)
+
+### Features
+
+* **feat** mv auto ingress host option to namespace to cluster ([c6f9191](https://github.com/octohelm/qservice-operator/commit/c6f91917d2d1f2e7ac4d7bc2dd7644364bf86085))
+
+
+
 # [0.1.2](https://github.com/octohelm/qservice-operator/compare/v0.1.1...v0.1.2)
 
 ### Bug Fixes
