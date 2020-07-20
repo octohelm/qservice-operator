@@ -270,22 +270,38 @@ func with(processes ...process) process {
 	}
 }
 
-var autoIngressHost = os.Getenv("AUTO_INGRESS_HOST")
+var autoIngressHosts = toAutoIngressHosts(os.Getenv("AUTO_INGRESS_HOSTS"))
+
+func toAutoIngressHosts(v string) map[string]bool {
+	if v == "" {
+		return map[string]bool{}
+	}
+
+	m := map[string]bool{}
+
+	for _, h := range strings.Split(v, ",") {
+		m[h] = true
+	}
+
+	return m
+}
 
 func (r *ReconcileQService) applyIngress(ctx context.Context, qsvc *servingv1alpha1.QService, flags *Flags) error {
-	if autoIngressHost != "" {
-		exists := false
+	if len(autoIngressHosts) > 0 {
+		m := map[string]bool{}
 
 		for i := range qsvc.Spec.Ingresses {
 			ingress := qsvc.Spec.Ingresses[i]
-
-			if strings.HasSuffix(ingress.Host, autoIngressHost) {
-				exists = true
-				break
-			}
+			m[ingress.Host] = true
 		}
 
-		if !exists {
+		for autoIngressHost := range autoIngressHosts {
+			h := fmt.Sprintf("%s---%s.%s", qsvc.Name, qsvc.Namespace, autoIngressHost)
+
+			if m[h] {
+				continue
+			}
+
 			port := uint16(80)
 
 			if len(qsvc.Spec.Ports) > 0 {
@@ -294,7 +310,7 @@ func (r *ReconcileQService) applyIngress(ctx context.Context, qsvc *servingv1alp
 
 			qsvc.Spec.Ingresses = append(qsvc.Spec.Ingresses, strfmt.Ingress{
 				Scheme: "http",
-				Host:   fmt.Sprintf("%s---%s.%s", qsvc.Name, qsvc.Namespace, autoIngressHost),
+				Host:   h,
 				Port:   port,
 			})
 		}

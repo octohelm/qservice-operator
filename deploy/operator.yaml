@@ -16,13 +16,13 @@ spec:
       serviceAccountName: qservice-operator
       containers:
         - name: qservice-operator
-          image: octohelm/qservice-operator:0.1.2
+          image: octohelm/qservice-operator:0.2.1
           command:
             - qservice-operator
           imagePullPolicy: Always
           env:
-            - name: AUTO_INGRESS_HOST
-              value: "hw-dev.rktl.xyz"
+            - name: AUTO_INGRESS_HOSTS
+              value: "hw-dev.rktl.xyz,hw-dev2.rktl.xyz"
             - name: WATCH_NAMESPACE
               value: ""
             - name: POD_NAME

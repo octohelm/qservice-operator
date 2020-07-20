@@ -1,7 +1,7 @@
 VERSION=$(shell cat .version)
 
 up: apply-crd
-	operator-sdk run local
+	AUTO_INGRESS_HOSTS=hw-dev.rktl.xyz,hw-dev2.rktl.xyz operator-sdk run local
 
 dockerx:
 	docker buildx build \
