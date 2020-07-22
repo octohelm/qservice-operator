@@ -34,8 +34,8 @@ func ToExportedVirtualService(s *QService, host string, ingresses []strfmt.Ingre
 	vs := &istioapis.VirtualService{}
 	vs.Name = s.Name + "-" + hashID(host)
 	vs.Labels = s.Labels
-	vs.Labels["host"] = host
 	vs.Labels["controlled-by"] = s.Name
+	vs.Labels["host"] = vs.Name
 
 	vs.Spec.Hosts = append(vs.Spec.Hosts, host)
 

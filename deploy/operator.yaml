@@ -10,19 +10,21 @@ spec:
       name: qservice-operator
   template:
     metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
       labels:
         name: qservice-operator
     spec:
       serviceAccountName: qservice-operator
       containers:
         - name: qservice-operator
-          image: octohelm/qservice-operator:0.2.1
+          image: octohelm/qservice-operator:0.2.2
           command:
             - qservice-operator
           imagePullPolicy: Always
           env:
             - name: AUTO_INGRESS_HOSTS
-              value: "hw-dev.rktl.xyz,hw-dev2.rktl.xyz"
+              value: "hw-dev.rktl.xyz"
             - name: WATCH_NAMESPACE
               value: ""
             - name: POD_NAME

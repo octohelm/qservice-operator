@@ -330,13 +330,13 @@ func (r *ReconcileQService) applyIngress(ctx context.Context, qsvc *servingv1alp
 			groupedIngresses[h.Host] = append(groupedIngresses[h.Host], h)
 		}
 
-		hosts := make([]string, 0)
+		hostIDs := make([]string, 0)
 
 		for host := range groupedIngresses {
-			hosts = append(hosts, host)
-
 			vs := converter.ToExportedVirtualService(qsvc, host, groupedIngresses[host])
 			r.setControllerReference(vs, qsvc)
+
+			hostIDs = append(hostIDs, vs.Name)
 
 			if err := applyVirtualService(ctx, qsvc.Namespace, vs); err != nil {
 				return err
@@ -351,7 +351,7 @@ func (r *ReconcileQService) applyIngress(ctx context.Context, qsvc *servingv1alp
 				MatchExpressions: []metav1.LabelSelectorRequirement{{
 					Key:      "host",
 					Operator: metav1.LabelSelectorOpNotIn,
-					Values:   hosts,
+					Values:   hostIDs,
 				}},
 			})
 
