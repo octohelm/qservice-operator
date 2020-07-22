@@ -5,6 +5,14 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.2.2](https://github.com/octohelm/qservice-operator/compare/v0.2.1...v0.2.2)
+
+### Bug Fixes
+
+* **fix** name of vs should be shorted ([f9e44da](https://github.com/octohelm/qservice-operator/commit/f9e44dad90f213db19405a2d83713978d527bdbb))
+
+
+
 # [0.2.1](https://github.com/octohelm/qservice-operator/compare/v0.2.0...v0.2.1)
 
 ### Bug Fixes
