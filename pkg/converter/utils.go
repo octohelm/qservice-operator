@@ -1,6 +1,8 @@
 package converter
 
 import (
+	"hash/crc32"
+	"strconv"
 	"strings"
 
 	v1 "k8s.io/api/core/v1"
@@ -26,4 +28,8 @@ func cloneKV(from map[string]string) map[string]string {
 
 	}
 	return m
+}
+
+func hashID(v string) string {
+	return strconv.FormatUint(uint64(crc32.Checksum([]byte(v), crc32.MakeTable(crc32.IEEE))), 16)
 }

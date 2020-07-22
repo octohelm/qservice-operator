@@ -32,7 +32,7 @@ func ToClusterVirtualService(s *QService) *istioapis.VirtualService {
 
 func ToExportedVirtualService(s *QService, host string, ingresses []strfmt.Ingress) *istioapis.VirtualService {
 	vs := &istioapis.VirtualService{}
-	vs.Name = host
+	vs.Name = s.Name + "-" + hashID(host)
 	vs.Labels = s.Labels
 	vs.Labels["host"] = host
 	vs.Labels["controlled-by"] = s.Name
