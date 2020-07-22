@@ -5,6 +5,14 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.2.3](https://github.com/octohelm/qservice-operator/compare/v0.2.2...v0.2.3)
+
+### Bug Fixes
+
+* **fix** labels lens limit fix ([a004813](https://github.com/octohelm/qservice-operator/commit/a004813b89c1c8dcb723159e91a7995ae17679c0))
+
+
+
 # [0.2.2](https://github.com/octohelm/qservice-operator/compare/v0.2.1...v0.2.2)
 
 ### Bug Fixes
