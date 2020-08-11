@@ -107,10 +107,20 @@ func toEnvVars(envs Envs) []v1.EnvVar {
 	envVars := make([]v1.EnvVar, 0)
 
 	for _, k := range keys {
-		envVars = append(envVars, v1.EnvVar{
-			Name:  k,
-			Value: envs[k],
-		})
+		v := envs[k]
+
+		evs, err := strfmt.ParseEnvVarSource(v)
+		if err == nil {
+			envVars = append(envVars, v1.EnvVar{
+				Name:      k,
+				ValueFrom: evs,
+			})
+		} else {
+			envVars = append(envVars, v1.EnvVar{
+				Name:  k,
+				Value: v,
+			})
+		}
 	}
 
 	return envVars
