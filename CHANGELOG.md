@@ -5,6 +5,14 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.3.0](https://github.com/octohelm/qservice-operator/compare/v0.2.3...v0.3.0)
+
+### Features
+
+* **feat** value format for value ref in env var ([5bdad1c](https://github.com/octohelm/qservice-operator/commit/5bdad1c17d22c8c994b4307842b36ec19cd8d139))
+
+
+
 # [0.2.3](https://github.com/octohelm/qservice-operator/compare/v0.2.2...v0.2.3)
 
 ### Bug Fixes
