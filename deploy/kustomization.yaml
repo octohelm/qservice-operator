@@ -1,0 +1,10 @@
+namespace: octohelm
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+resources:
+  - operator.yaml
+  - role.yaml
+  - role_binding.yaml
+  - service_account.yaml

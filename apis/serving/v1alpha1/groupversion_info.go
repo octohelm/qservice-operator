@@ -1,7 +1,5 @@
-// NOTE: Boilerplate only.  Ignore this file.
-
 // Package v1alpha1 contains API Schema definitions for the serving v1alpha1 API group
-// +k8s:deepcopy-gen=package,register
+// +kubebuilder:object:generate=true
 // +groupName=serving.octohelm.tech
 package v1alpha1
 
@@ -16,4 +14,7 @@ var (
 
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
 	SchemeBuilder = &scheme.Builder{GroupVersion: SchemeGroupVersion}
+
+	// AddToScheme adds the types in this group-version to the given scheme.
+	AddToScheme = SchemeBuilder.AddToScheme
 )

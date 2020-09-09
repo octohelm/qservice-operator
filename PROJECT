@@ -1,0 +1,11 @@
+domain: octohelm.tech
+layout: go.kubebuilder.io/v2
+repo: github.com/octohelm/qservice-operator
+resources:
+- group: serving
+  kind: QService
+  version: v1alpha1
+version: 3-alpha
+multigroup: true
+plugins:
+  go.operator-sdk.io/v2-alpha: {}

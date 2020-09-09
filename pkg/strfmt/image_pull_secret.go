@@ -43,11 +43,16 @@ func (s *ImagePullSecret) SecretName() string {
 }
 
 func (s *ImagePullSecret) PrefixTag(tag string) string {
-	prefix := s.Host + s.Prefix
+	n := len(strings.Split(tag, "/"))
+	if n >= 3 {
+		return tag
+	}
 
-	if len(strings.Split(tag, "/")) == 1 {
+	if n == 1 {
 		tag = "library/" + tag
 	}
+
+	prefix := s.Host + s.Prefix
 
 	if strings.HasPrefix(tag, prefix) {
 		return tag

@@ -10,7 +10,8 @@ import (
 	"strings"
 	"time"
 
-	servingv1alpha1 "github.com/octohelm/qservice-operator/pkg/apis/serving/v1alpha1"
+	"github.com/go-logr/logr"
+	servingv1alpha1 "github.com/octohelm/qservice-operator/apis/serving/v1alpha1"
 	"github.com/octohelm/qservice-operator/pkg/converter"
 	"github.com/octohelm/qservice-operator/pkg/strfmt"
 	istiov1alpha3 "istio.io/client-go/pkg/apis/networking/v1alpha3"
@@ -22,38 +23,24 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/kubernetes"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
-var log = logf.Log.WithName("controller_qservice")
-
-// Add creates a new QService Controller and adds it to the Manager. The Manager will set fields on the Controller
-// and Start it when the Manager is Started.
-func Add(mgr manager.Manager) error {
-	return add(mgr, newReconciler(mgr))
+// QServiceReconciler reconciles a QService object
+type QServiceReconciler struct {
+	client.Client
+	Log    logr.Logger
+	Scheme *runtime.Scheme
 }
 
-// add adds a new Controller to mgr with r as the reconcile.Reconciler
-func add(mgr manager.Manager, r reconcile.Reconciler) error {
-	// Create a new controller
-	c, err := controller.New("qservice-controller", mgr, controller.Options{Reconciler: r})
-	if err != nil {
-		return err
-	}
-
-	// Watch for changes to primary resource QService
-	err = c.Watch(&source.Kind{Type: &servingv1alpha1.QService{}}, &handler.EnqueueRequestForObject{})
-	if err != nil {
-		return err
-	}
+func (r *QServiceReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	cm := ctrl.NewControllerManagedBy(mgr).
+		For(&servingv1alpha1.QService{})
 
 	objects := []runtime.Object{
 		&appsv1.Deployment{},
@@ -65,53 +52,29 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	for i := range objects {
-		err = c.Watch(&source.Kind{Type: objects[i]}, &handler.EnqueueRequestForOwner{
+		cm = cm.Watches(&source.Kind{Type: objects[i]}, &handler.EnqueueRequestForOwner{
 			IsController: true,
 			OwnerType:    &servingv1alpha1.QService{},
 		})
-		if err != nil {
-			return err
-		}
-
 	}
 
-	return nil
-}
-
-// newReconciler returns a new reconcile.Reconciler
-func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	cs, _ := kubernetes.NewForConfig(mgr.GetConfig())
-	return &ReconcileQService{clusterClient: cs, client: mgr.GetClient(), scheme: mgr.GetScheme()}
-}
-
-// blank assignment to verify that ReconcileQService implements reconcile.Reconciler
-var _ reconcile.Reconciler = &ReconcileQService{}
-
-// ReconcileQService reconciles a QService object
-type ReconcileQService struct {
-	clusterClient kubernetes.Interface
-	client        client.Client
-	scheme        *runtime.Scheme
+	return cm.Complete(r)
 }
 
 // Reconcile reads that state of the cluster for a QService object and makes changes based on the state read
 // and what is in the QService.Spec
-func (r *ReconcileQService) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
-
-	reqLogger.Info("Reconciling QService")
-
+func (r *QServiceReconciler) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	ctx := context.Background()
 
 	qsvc := &servingv1alpha1.QService{}
 
-	err := r.client.Get(ctx, request.NamespacedName, qsvc)
+	err := r.Client.Get(ctx, request.NamespacedName, qsvc)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			reqLogger.Info("QService resource not found. Ignoring since object must be deleted")
+			r.Log.Info("QService resource not found. Ignoring since object must be deleted")
 			return reconcile.Result{}, nil
 		}
-		reqLogger.Error(err, "Failed to get QService")
+		r.Log.Error(err, "Failed to get QService")
 		return reconcile.Result{}, err
 	}
 
@@ -126,10 +89,10 @@ func (r *ReconcileQService) Reconcile(request reconcile.Request) (reconcile.Resu
 	return reconcile.Result{}, nil
 }
 
-func (r *ReconcileQService) updateDeploymentStage(ctx context.Context, qsvc *servingv1alpha1.QService) error {
+func (r *QServiceReconciler) updateDeploymentStage(ctx context.Context, qsvc *servingv1alpha1.QService) error {
 	deployment := &appsv1.Deployment{}
 
-	if err := r.client.Get(ctx, types.NamespacedName{Name: qsvc.Name, Namespace: qsvc.Namespace}, deployment); err != nil {
+	if err := r.Client.Get(ctx, types.NamespacedName{Name: qsvc.Name, Namespace: qsvc.Namespace}, deployment); err != nil {
 		return err
 	}
 
@@ -139,7 +102,7 @@ func (r *ReconcileQService) updateDeploymentStage(ctx context.Context, qsvc *ser
 
 	podList := &corev1.PodList{}
 
-	if err := r.client.List(
+	if err := r.Client.List(
 		ctx, podList,
 		client.InNamespace(qsvc.Namespace),
 		client.MatchingLabels(map[string]string{
@@ -152,7 +115,7 @@ func (r *ReconcileQService) updateDeploymentStage(ctx context.Context, qsvc *ser
 	qsvc.Status.DeploymentStatus = deployment.Status
 	qsvc.Status.DeploymentStage, qsvc.Status.DeploymentComments = toDeploymentStage(&deployment.Status, podList.Items)
 
-	err := r.client.Status().Update(ctx, qsvc)
+	err := r.Client.Status().Update(ctx, qsvc)
 	if err != nil {
 		return err
 	}
@@ -174,10 +137,10 @@ func (r *ReconcileQService) updateDeploymentStage(ctx context.Context, qsvc *ser
 						Time: deployment.Status.Conditions[idx].LastUpdateTime.Add(interval),
 					}
 
-					err := r.client.Status().Update(ctx, deployment)
+					err := r.Client.Status().Update(ctx, deployment)
 					if err != nil {
 						if !apierrors.IsConflict(err) {
-							log.Error(err, "update deployment status failed")
+							r.Log.Error(err, "update deployment status failed")
 						}
 					}
 				}()
@@ -225,20 +188,21 @@ func toDeploymentStage(status *appsv1.DeploymentStatus, pods []corev1.Pod) (stri
 	return stage, b.String()
 }
 
-func (r *ReconcileQService) setControllerReference(obj metav1.Object, owner metav1.Object) {
-	_ = controllerutil.SetControllerReference(owner, obj, r.scheme)
+func (r *QServiceReconciler) setControllerReference(obj metav1.Object, owner metav1.Object) {
+	_ = controllerutil.SetControllerReference(owner, obj, r.Scheme)
 	obj.SetAnnotations(annotateControllerGeneration(obj.GetAnnotations(), owner.GetGeneration()))
 }
 
-func (r *ReconcileQService) getFlagsFromNamespace(ctx context.Context, namespace string) (Flags, error) {
-	n, err := r.clusterClient.CoreV1().Namespaces().Get(ctx, namespace, metav1.GetOptions{})
+func (r *QServiceReconciler) getFlagsFromNamespace(ctx context.Context, namespace string) (Flags, error) {
+	n := &corev1.Namespace{}
+	err := r.Client.Get(ctx, types.NamespacedName{Name: namespace, Namespace: ""}, n)
 	if err != nil {
 		return Flags{}, err
 	}
 	return FlagsFromNamespaceLabels(n.Labels), nil
 }
 
-func (r *ReconcileQService) applyQService(ctx context.Context, qsvc *servingv1alpha1.QService) error {
+func (r *QServiceReconciler) applyQService(ctx context.Context, qsvc *servingv1alpha1.QService) error {
 	flags, err := r.getFlagsFromNamespace(ctx, qsvc.Namespace)
 	if err != nil {
 		return err
@@ -246,7 +210,7 @@ func (r *ReconcileQService) applyQService(ctx context.Context, qsvc *servingv1al
 
 	qsvc.Labels["app"] = qsvc.Name
 
-	ctx = ContextWithControllerClient(ctx, r.client)
+	ctx = ContextWithControllerClient(ctx, r.Client)
 
 	return with(
 		r.applyImagePullSecret,
@@ -286,7 +250,7 @@ func toAutoIngressHosts(v string) map[string]bool {
 	return m
 }
 
-func (r *ReconcileQService) applyIngress(ctx context.Context, qsvc *servingv1alpha1.QService, flags *Flags) error {
+func (r *QServiceReconciler) applyIngress(ctx context.Context, qsvc *servingv1alpha1.QService, flags *Flags) error {
 	if len(autoIngressHosts) > 0 {
 		m := map[string]bool{}
 
@@ -355,14 +319,14 @@ func (r *ReconcileQService) applyIngress(ctx context.Context, qsvc *servingv1alp
 				}},
 			})
 
-			err := r.client.DeleteAllOf(ctx, &istiov1alpha3.VirtualService{},
+			err := r.Client.DeleteAllOf(ctx, &istiov1alpha3.VirtualService{},
 				client.InNamespace(qsvc.Namespace),
 				client.MatchingLabelsSelector{
 					Selector: ls,
 				},
 			)
 			if err != nil {
-				log.Error(err, "cleanup failed")
+				r.Log.Error(err, "cleanup failed")
 			}
 		}()
 	}
@@ -370,7 +334,7 @@ func (r *ReconcileQService) applyIngress(ctx context.Context, qsvc *servingv1alp
 	return nil
 }
 
-func (r *ReconcileQService) applyService(ctx context.Context, qsvc *servingv1alpha1.QService, flags *Flags) error {
+func (r *QServiceReconciler) applyService(ctx context.Context, qsvc *servingv1alpha1.QService, flags *Flags) error {
 	s := converter.ToService(qsvc)
 	r.setControllerReference(s, qsvc)
 
@@ -390,7 +354,7 @@ func (r *ReconcileQService) applyService(ctx context.Context, qsvc *servingv1alp
 	return nil
 }
 
-func (r *ReconcileQService) applyImagePullSecret(ctx context.Context, qsvc *servingv1alpha1.QService, flags *Flags) error {
+func (r *QServiceReconciler) applyImagePullSecret(ctx context.Context, qsvc *servingv1alpha1.QService, flags *Flags) error {
 	if pullSecret, ok := qsvc.Annotations[AnnotationImageKeyPullSecret]; ok {
 		ips, err := strfmt.ParseImagePullSecret(pullSecret)
 		if err != nil {
@@ -413,7 +377,7 @@ func (r *ReconcileQService) applyImagePullSecret(ctx context.Context, qsvc *serv
 	return nil
 }
 
-func (r *ReconcileQService) applyDeployment(ctx context.Context, qsvc *servingv1alpha1.QService, flags *Flags) error {
+func (r *QServiceReconciler) applyDeployment(ctx context.Context, qsvc *servingv1alpha1.QService, flags *Flags) error {
 	deployment := converter.ToDeployment(qsvc)
 	r.setControllerReference(deployment, qsvc)
 

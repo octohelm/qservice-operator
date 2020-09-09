@@ -1,2 +1,0 @@
-gen-deepcopy:
-	go run ./hack/tools.go deepcopy ./pkg/apis/serving/v1alpha1 ./pkg/strfmt

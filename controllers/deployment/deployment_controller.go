@@ -21,68 +21,37 @@ import (
 	"strconv"
 	"strings"
 
+	corev1 "k8s.io/api/core/v1"
+
 	"github.com/go-courier/ptr"
+	"github.com/go-logr/logr"
 	"github.com/octohelm/qservice-operator/pkg/apiutil"
 	"github.com/octohelm/qservice-operator/pkg/strfmt"
 	appsv1 "k8s.io/api/apps/v1"
 	autoscalingv2beta1 "k8s.io/api/autoscaling/v2beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/kubernetes"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
-var log = logf.Log.WithName("controller_deployment")
-
-// Add creates a new Deployment Controller and adds it to the Manager. The Manager will set fields on the Controller
-// and Start it when the Manager is Started.
-func Add(mgr manager.Manager) error {
-	return add(mgr, newReconciler(mgr))
+type DeploymentReconciler struct {
+	client.Client
+	Log    logr.Logger
+	Scheme *runtime.Scheme
 }
 
-// newReconciler returns a new reconcile.Reconciler
-func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	cs, _ := kubernetes.NewForConfig(mgr.GetConfig())
-	return &ReconcileDeployment{clusterClient: cs, client: mgr.GetClient(), scheme: mgr.GetScheme()}
+func (r *DeploymentReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	return ctrl.NewControllerManagedBy(mgr).
+		For(&appsv1.Deployment{}).
+		Complete(r)
 }
 
-// add adds a new Controller to mgr with r as the reconcile.Reconciler
-func add(mgr manager.Manager, r reconcile.Reconciler) error {
-	// Create a new controller
-	c, err := controller.New("deployment-controller", mgr, controller.Options{Reconciler: r})
-	if err != nil {
-		return err
-	}
-
-	// Watch for changes to primary resource Deployment
-	err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, &handler.EnqueueRequestForObject{})
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-var _ reconcile.Reconciler = &ReconcileDeployment{}
-
-type ReconcileDeployment struct {
-	client        client.Client
-	clusterClient kubernetes.Interface
-	scheme        *runtime.Scheme
-}
-
-func (r *ReconcileDeployment) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
-	reqLogger.Info("Reconciling Deployment")
+func (r *DeploymentReconciler) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+	r.Log.Info("Reconciling Deployment")
 
 	ctx := context.Background()
 
@@ -96,9 +65,9 @@ func (r *ReconcileDeployment) Reconcile(request reconcile.Request) (reconcile.Re
 	}
 
 	dep := &appsv1.Deployment{}
-	if err := r.client.Get(ctx, request.NamespacedName, dep); err != nil {
+	if err := r.Client.Get(ctx, request.NamespacedName, dep); err != nil {
 		if errors.IsNotFound(err) {
-			if err := deleteHorizontalPodAutoscaler(ctx, r.client, request.NamespacedName); err != nil {
+			if err := deleteHorizontalPodAutoscaler(ctx, r.Client, request.NamespacedName); err != nil {
 				return reconcile.Result{}, nil
 			}
 			return reconcile.Result{}, nil
@@ -108,11 +77,11 @@ func (r *ReconcileDeployment) Reconcile(request reconcile.Request) (reconcile.Re
 
 	hpa := toHorizontalPodAutoscaler(dep)
 	if hpa != nil {
-		if err := applyHorizontalPodAutoscaler(ctx, r.client, dep.Namespace, hpa); err != nil {
+		if err := applyHorizontalPodAutoscaler(ctx, r.Client, dep.Namespace, hpa); err != nil {
 			return reconcile.Result{}, err
 		}
 	} else {
-		if err := deleteHorizontalPodAutoscaler(ctx, r.client, request.NamespacedName); err != nil {
+		if err := deleteHorizontalPodAutoscaler(ctx, r.Client, request.NamespacedName); err != nil {
 			return reconcile.Result{}, nil
 		}
 	}
@@ -120,8 +89,9 @@ func (r *ReconcileDeployment) Reconcile(request reconcile.Request) (reconcile.Re
 	return reconcile.Result{}, nil
 }
 
-func (r *ReconcileDeployment) autoScalingEnabledInNamespace(ctx context.Context, namespace string) (bool, error) {
-	n, err := r.clusterClient.CoreV1().Namespaces().Get(ctx, namespace, metav1.GetOptions{})
+func (r *DeploymentReconciler) autoScalingEnabledInNamespace(ctx context.Context, namespace string) (bool, error) {
+	n := &corev1.Namespace{}
+	err := r.Client.Get(ctx, types.NamespacedName{Name: namespace, Namespace: ""}, n)
 	if err != nil {
 		return false, err
 	}
