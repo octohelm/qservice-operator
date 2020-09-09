@@ -7,7 +7,7 @@ import (
 
 func ToIngress(s *QService) *extensionsv1beta1.Ingress {
 	ingress := &extensionsv1beta1.Ingress{}
-
+	ingress.Namespace = s.Namespace
 	ingress.Name = s.Name
 	ingress.Labels = s.Labels
 

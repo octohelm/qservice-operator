@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: qservice-operator
 spec:
-  replicas: 3
+  replicas: 2
   selector:
     matchLabels:
       name: qservice-operator
@@ -17,7 +17,7 @@ spec:
       serviceAccountName: qservice-operator
       containers:
         - name: qservice-operator
-          image: hub-dev.rockontrol.com/octohelm/qservice-operator:0.3.1
+          image: octohelm/qservice-operator:0.3.1
           args:
             - --enable-leader-election
           imagePullPolicy: Always

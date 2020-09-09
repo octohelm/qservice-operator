@@ -9,8 +9,8 @@ import (
 
 func ToDeployment(s *QService) *appsv1.Deployment {
 	d := &appsv1.Deployment{}
-	d.Name = s.Name
 	d.Namespace = s.Namespace
+	d.Name = s.Name
 	d.Labels = cloneKV(s.Labels)
 	d.Annotations = cloneKV(s.Annotations)
 

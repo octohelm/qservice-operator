@@ -9,6 +9,7 @@ import (
 
 func ToService(s *QService) *v1.Service {
 	service := &v1.Service{}
+	service.Namespace = s.Namespace
 	service.Name = s.Name
 	service.Labels = s.Labels
 	service.Spec = toServiceSpec(s)

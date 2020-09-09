@@ -16,13 +16,14 @@ run: apply-crd
 build:
 	$(GOBUILD) -o $(GOBIN)/qservice-operator ./main.go
 
-dockerx:
+build.dockerx:
 	docker buildx build \
 		--push \
 		--build-arg=GOPROXY=${GOPROXY} \
 		--platform=linux/amd64,linux/arm64 \
-		-f Dockerfile \
-		-t hub-dev.rockontrol.com/octohelm/qservice-operator:${VERSION} .
+		-t octohelm/qservice-operator:${VERSION} \
+		-t hub-dev.demo.querycap.com/octohelm/qservice-operator:${VERSION} \
+		-f Dockerfile .
 
 lint:
 	husky hook pre-commit

@@ -1,23 +1,31 @@
 package controllers
 
 import (
-	"github.com/octohelm/qservice-operator/controllers/deployment"
-	"github.com/octohelm/qservice-operator/controllers/qservice"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
-func AddToManager(mgr ctrl.Manager) error {
+func SetupWithManager(mgr ctrl.Manager) error {
 	return SetupReconcilerWithManager(
 		mgr,
-		&qservice.QServiceReconciler{
+		&QServiceReconciler{
 			Client: mgr.GetClient(),
-			Log:    ctrl.Log.WithName("controllers").WithName("QService"),
+			Log:    mgr.GetLogger().WithName("controllers").WithName("QService"),
 			Scheme: mgr.GetScheme(),
 		},
-		&deployment.DeploymentReconciler{
+		&DeploymentReconciler{
 			Client: mgr.GetClient(),
-			Log:    ctrl.Log.WithName("controllers").WithName("Deployment"),
+			Log:    mgr.GetLogger().WithName("controllers").WithName("Deployment"),
+			Scheme: mgr.GetScheme(),
+		},
+		&ServiceReconciler{
+			Client: mgr.GetClient(),
+			Log:    mgr.GetLogger().WithName("controllers").WithName("Service"),
+			Scheme: mgr.GetScheme(),
+		},
+		&IngressReconciler{
+			Client: mgr.GetClient(),
+			Log:    mgr.GetLogger().WithName("controllers").WithName("Ingress"),
 			Scheme: mgr.GetScheme(),
 		},
 	)

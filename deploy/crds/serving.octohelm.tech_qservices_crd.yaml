@@ -1,4 +1,4 @@
-apiVersion: apiextensions.k8s.io/v1beta1
+apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   name: qservices.serving.octohelm.tech
@@ -12,8 +12,6 @@ spec:
     singular: qservice
     shortNames:
       - qsvc
-  subresources:
-    status: {}
   versions:
     - name: v1alpha1
       served: true

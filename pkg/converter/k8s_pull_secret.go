@@ -5,10 +5,12 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-func ToImagePullSecret(secret *strfmt.ImagePullSecret) *corev1.Secret {
+func ToImagePullSecret(secret *strfmt.ImagePullSecret, namespace string) *corev1.Secret {
 	s := corev1.Secret{}
-	s.Type = "kubernetes.io/dockerconfigjson"
+	s.Namespace = namespace
 	s.Name = secret.Name
+
+	s.Type = "kubernetes.io/dockerconfigjson"
 	s.Data = map[string][]byte{
 		".dockerconfigjson": secret.DockerConfigJSON(),
 	}

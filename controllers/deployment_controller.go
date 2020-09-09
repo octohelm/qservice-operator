@@ -14,12 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package deployment
+package controllers
 
 import (
 	"context"
 	"strconv"
 	"strings"
+
+	"github.com/octohelm/qservice-operator/pkg/controllerutil"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	corev1 "k8s.io/api/core/v1"
 
@@ -38,6 +41,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
+// DeploymentReconciler reconciles a Deployment object
 type DeploymentReconciler struct {
 	client.Client
 	Log    logr.Logger
@@ -47,19 +51,17 @@ type DeploymentReconciler struct {
 func (r *DeploymentReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&appsv1.Deployment{}).
+		Owns(&autoscalingv2beta1.HorizontalPodAutoscaler{}).
 		Complete(r)
 }
 
 func (r *DeploymentReconciler) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	r.Log.Info("Reconciling Deployment")
-
 	ctx := context.Background()
 
 	ok, err := r.autoScalingEnabledInNamespace(ctx, request.Namespace)
 	if err != nil {
 		return reconcile.Result{}, err
 	}
-
 	if !ok {
 		return reconcile.Result{}, nil
 	}
@@ -67,9 +69,6 @@ func (r *DeploymentReconciler) Reconcile(request reconcile.Request) (reconcile.R
 	dep := &appsv1.Deployment{}
 	if err := r.Client.Get(ctx, request.NamespacedName, dep); err != nil {
 		if errors.IsNotFound(err) {
-			if err := deleteHorizontalPodAutoscaler(ctx, r.Client, request.NamespacedName); err != nil {
-				return reconcile.Result{}, nil
-			}
 			return reconcile.Result{}, nil
 		}
 		return reconcile.Result{}, err
@@ -77,6 +76,8 @@ func (r *DeploymentReconciler) Reconcile(request reconcile.Request) (reconcile.R
 
 	hpa := toHorizontalPodAutoscaler(dep)
 	if hpa != nil {
+		r.setControllerReference(hpa, dep)
+
 		if err := applyHorizontalPodAutoscaler(ctx, r.Client, dep.Namespace, hpa); err != nil {
 			return reconcile.Result{}, err
 		}
@@ -98,10 +99,17 @@ func (r *DeploymentReconciler) autoScalingEnabledInNamespace(ctx context.Context
 	return n.Labels["autoscaling"] == "enabled", nil
 }
 
+func (r *DeploymentReconciler) setControllerReference(obj metav1.Object, owner metav1.Object) {
+	if err := controllerutil.SetControllerReference(owner, obj, r.Scheme); err != nil {
+		r.Log.Error(err, "")
+	}
+	obj.SetAnnotations(controllerutil.AnnotateControllerGeneration(obj.GetAnnotations(), owner.GetGeneration()))
+}
+
 func deleteHorizontalPodAutoscaler(ctx context.Context, c client.Client, namespacedName types.NamespacedName) error {
 	hpa := &autoscalingv2beta1.HorizontalPodAutoscaler{}
-	hpa.Name = namespacedName.Name
 	hpa.Namespace = namespacedName.Namespace
+	hpa.Name = namespacedName.Name
 
 	if err := c.Delete(ctx, hpa); err != nil {
 		if apierrors.IsNotFound(err) {
@@ -144,7 +152,9 @@ func toHorizontalPodAutoscaler(dep *appsv1.Deployment) *autoscalingv2beta1.Horiz
 
 	if hasAuthScaling {
 		hpa := &autoscalingv2beta1.HorizontalPodAutoscaler{}
+		hpa.Namespace = dep.Namespace
 		hpa.Name = dep.Name
+
 		hpa.Labels = dep.Labels
 
 		hpa.Spec.ScaleTargetRef.APIVersion = dep.APIVersion

@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"istio.io/api/networking/v1beta1"
-	istiov1alpha3 "istio.io/client-go/pkg/apis/networking/v1beta1"
+	"istio.io/api/networking/v1alpha3"
+	istiov1alpha3 "istio.io/client-go/pkg/apis/networking/v1alpha3"
 )
 
 func ToExternalServiceEntity(u *url.URL) *istiov1alpha3.ServiceEntry {
@@ -45,7 +45,7 @@ func ToExternalServiceEntity(u *url.URL) *istiov1alpha3.ServiceEntry {
 		prefix = "ext-" + scheme + "-"
 	}
 
-	ort := v1beta1.Port{
+	ort := v1alpha3.Port{
 		Name:     strings.ToLower(protocol) + "-" + strconv.FormatUint(portNumber, 10),
 		Number:   uint32(portNumber),
 		Protocol: protocol,
@@ -53,7 +53,7 @@ func ToExternalServiceEntity(u *url.URL) *istiov1alpha3.ServiceEntry {
 
 	se.Name = prefix + ort.Name + "--" + hostname
 
-	se.Spec.Location = v1beta1.ServiceEntry_MESH_EXTERNAL
+	se.Spec.Location = v1alpha3.ServiceEntry_MESH_EXTERNAL
 	se.Spec.ExportTo = []string{"."}
 
 	ip := net.ParseIP(hostname)
@@ -61,7 +61,7 @@ func ToExternalServiceEntity(u *url.URL) *istiov1alpha3.ServiceEntry {
 	if ip == nil {
 		// host
 		se.Spec.Hosts = []string{hostname}
-		se.Spec.Resolution = v1beta1.ServiceEntry_DNS
+		se.Spec.Resolution = v1alpha3.ServiceEntry_DNS
 	} else {
 		se.Spec.Hosts = []string{
 			prefix + ort.Name + "-" + hexIP(ip),
@@ -70,11 +70,11 @@ func ToExternalServiceEntity(u *url.URL) *istiov1alpha3.ServiceEntry {
 		ipv4 := ip.To4().String()
 
 		se.Spec.Addresses = []string{ipv4}
-		se.Spec.Endpoints = []*v1beta1.WorkloadEntry{{Address: ipv4}}
-		se.Spec.Resolution = v1beta1.ServiceEntry_STATIC
+		se.Spec.Endpoints = []*v1alpha3.WorkloadEntry{{Address: ipv4}}
+		se.Spec.Resolution = v1alpha3.ServiceEntry_STATIC
 	}
 
-	se.Spec.Ports = []*v1beta1.Port{&ort}
+	se.Spec.Ports = []*v1alpha3.Port{&ort}
 
 	return se
 }

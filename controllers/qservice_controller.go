@@ -1,4 +1,4 @@
-package qservice
+package controllers
 
 import (
 	"bytes"
@@ -10,13 +10,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/octohelm/qservice-operator/pkg/controllerutil"
+	"github.com/pkg/errors"
+
 	"github.com/go-logr/logr"
 	servingv1alpha1 "github.com/octohelm/qservice-operator/apis/serving/v1alpha1"
 	"github.com/octohelm/qservice-operator/pkg/converter"
 	"github.com/octohelm/qservice-operator/pkg/strfmt"
-	istiov1alpha3 "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	appsv1 "k8s.io/api/apps/v1"
-	autoscalingv2beta1 "k8s.io/api/autoscaling/v2beta1"
 	corev1 "k8s.io/api/core/v1"
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -25,10 +26,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
 // QServiceReconciler reconciles a QService object
@@ -39,26 +37,13 @@ type QServiceReconciler struct {
 }
 
 func (r *QServiceReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	cm := ctrl.NewControllerManagedBy(mgr).
-		For(&servingv1alpha1.QService{})
-
-	objects := []runtime.Object{
-		&appsv1.Deployment{},
-		&autoscalingv2beta1.HorizontalPodAutoscaler{},
-		&corev1.Service{},
-		&extensionsv1beta1.Ingress{},
-		&corev1.Secret{},
-		&istiov1alpha3.VirtualService{},
-	}
-
-	for i := range objects {
-		cm = cm.Watches(&source.Kind{Type: objects[i]}, &handler.EnqueueRequestForOwner{
-			IsController: true,
-			OwnerType:    &servingv1alpha1.QService{},
-		})
-	}
-
-	return cm.Complete(r)
+	return ctrl.NewControllerManagedBy(mgr).
+		For(&servingv1alpha1.QService{}).
+		Owns(&corev1.Secret{}).
+		Owns(&corev1.Service{}).
+		Owns(&appsv1.Deployment{}).
+		Owns(&extensionsv1beta1.Ingress{}).
+		Complete(r)
 }
 
 // Reconcile reads that state of the cluster for a QService object and makes changes based on the state read
@@ -189,45 +174,33 @@ func toDeploymentStage(status *appsv1.DeploymentStatus, pods []corev1.Pod) (stri
 }
 
 func (r *QServiceReconciler) setControllerReference(obj metav1.Object, owner metav1.Object) {
-	_ = controllerutil.SetControllerReference(owner, obj, r.Scheme)
-	obj.SetAnnotations(annotateControllerGeneration(obj.GetAnnotations(), owner.GetGeneration()))
-}
-
-func (r *QServiceReconciler) getFlagsFromNamespace(ctx context.Context, namespace string) (Flags, error) {
-	n := &corev1.Namespace{}
-	err := r.Client.Get(ctx, types.NamespacedName{Name: namespace, Namespace: ""}, n)
-	if err != nil {
-		return Flags{}, err
+	if err := controllerutil.SetControllerReference(owner, obj, r.Scheme); err != nil {
+		r.Log.Error(err, "")
 	}
-	return FlagsFromNamespaceLabels(n.Labels), nil
+	obj.SetAnnotations(controllerutil.AnnotateControllerGeneration(obj.GetAnnotations(), owner.GetGeneration()))
 }
 
 func (r *QServiceReconciler) applyQService(ctx context.Context, qsvc *servingv1alpha1.QService) error {
-	flags, err := r.getFlagsFromNamespace(ctx, qsvc.Namespace)
-	if err != nil {
-		return err
-	}
-
 	qsvc.Labels["app"] = qsvc.Name
 
-	ctx = ContextWithControllerClient(ctx, r.Client)
+	ctx = controllerutil.ContextWithControllerClient(ctx, r.Client)
 
 	return with(
 		r.applyImagePullSecret,
 		r.applyDeployment,
 		r.applyService,
 		r.applyIngress,
-	)(ctx, qsvc, &flags)
+	)(ctx, qsvc)
 }
 
-type process = func(ctx context.Context, qsvc *servingv1alpha1.QService, flags *Flags) error
+type process = func(ctx context.Context, qsvc *servingv1alpha1.QService) error
 
 func with(processes ...process) process {
-	return func(ctx context.Context, qsvc *servingv1alpha1.QService, flags *Flags) error {
+	return func(ctx context.Context, qsvc *servingv1alpha1.QService) error {
 		for i := range processes {
 			p := processes[i]
-			if err := p(ctx, qsvc, flags); err != nil {
-				return fmt.Errorf("process(%d) %s", i, err)
+			if err := p(ctx, qsvc); err != nil {
+				return errors.Wrapf(err, "step %d", i)
 			}
 		}
 		return nil
@@ -250,7 +223,7 @@ func toAutoIngressHosts(v string) map[string]bool {
 	return m
 }
 
-func (r *QServiceReconciler) applyIngress(ctx context.Context, qsvc *servingv1alpha1.QService, flags *Flags) error {
+func (r *QServiceReconciler) applyIngress(ctx context.Context, qsvc *servingv1alpha1.QService) error {
 	if len(autoIngressHosts) > 0 {
 		m := map[string]bool{}
 
@@ -287,66 +260,17 @@ func (r *QServiceReconciler) applyIngress(ctx context.Context, qsvc *servingv1al
 		if err := applyIngress(ctx, qsvc.Namespace, ingress); err != nil {
 			return err
 		}
-
-		groupedIngresses := map[string][]strfmt.Ingress{}
-
-		for _, h := range qsvc.Spec.Ingresses {
-			groupedIngresses[h.Host] = append(groupedIngresses[h.Host], h)
-		}
-
-		hostIDs := make([]string, 0)
-
-		for host := range groupedIngresses {
-			vs := converter.ToExportedVirtualService(qsvc, host, groupedIngresses[host])
-			r.setControllerReference(vs, qsvc)
-
-			hostIDs = append(hostIDs, vs.Name)
-
-			if err := applyVirtualService(ctx, qsvc.Namespace, vs); err != nil {
-				return err
-			}
-		}
-
-		go func() {
-			ls, _ := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
-				MatchLabels: map[string]string{
-					"controlled-by": ingress.Name,
-				},
-				MatchExpressions: []metav1.LabelSelectorRequirement{{
-					Key:      "host",
-					Operator: metav1.LabelSelectorOpNotIn,
-					Values:   hostIDs,
-				}},
-			})
-
-			err := r.Client.DeleteAllOf(ctx, &istiov1alpha3.VirtualService{},
-				client.InNamespace(qsvc.Namespace),
-				client.MatchingLabelsSelector{
-					Selector: ls,
-				},
-			)
-			if err != nil {
-				r.Log.Error(err, "cleanup failed")
-			}
-		}()
 	}
 
 	return nil
 }
 
-func (r *QServiceReconciler) applyService(ctx context.Context, qsvc *servingv1alpha1.QService, flags *Flags) error {
+func (r *QServiceReconciler) applyService(ctx context.Context, qsvc *servingv1alpha1.QService) error {
 	s := converter.ToService(qsvc)
 	r.setControllerReference(s, qsvc)
 
-	if err := applyService(ctx, qsvc.Namespace, s); err != nil {
-		return err
-	}
-
-	if flags.IstioEnabled {
-		vs := converter.ToClusterVirtualService(qsvc)
-		r.setControllerReference(vs, qsvc)
-
-		if err := applyVirtualService(ctx, qsvc.Namespace, vs); err != nil {
+	if len(s.Spec.Ports) > 0 {
+		if err := applyService(ctx, qsvc.Namespace, s); err != nil {
 			return err
 		}
 	}
@@ -354,7 +278,9 @@ func (r *QServiceReconciler) applyService(ctx context.Context, qsvc *servingv1al
 	return nil
 }
 
-func (r *QServiceReconciler) applyImagePullSecret(ctx context.Context, qsvc *servingv1alpha1.QService, flags *Flags) error {
+const AnnotationImageKeyPullSecret = "serving.octohelm.tech/imagePullSecret"
+
+func (r *QServiceReconciler) applyImagePullSecret(ctx context.Context, qsvc *servingv1alpha1.QService) error {
 	if pullSecret, ok := qsvc.Annotations[AnnotationImageKeyPullSecret]; ok {
 		ips, err := strfmt.ParseImagePullSecret(pullSecret)
 		if err != nil {
@@ -366,7 +292,7 @@ func (r *QServiceReconciler) applyImagePullSecret(ctx context.Context, qsvc *ser
 		qsvc.Spec.Image = ips.PrefixTag(qsvc.Spec.Image)
 		qsvc.Spec.ImagePullSecret = ips.SecretName()
 
-		secret := converter.ToImagePullSecret(ips)
+		secret := converter.ToImagePullSecret(ips, qsvc.Namespace)
 		r.setControllerReference(secret, qsvc)
 
 		if err := applySecret(ctx, qsvc.Namespace, secret); err != nil {
@@ -377,7 +303,7 @@ func (r *QServiceReconciler) applyImagePullSecret(ctx context.Context, qsvc *ser
 	return nil
 }
 
-func (r *QServiceReconciler) applyDeployment(ctx context.Context, qsvc *servingv1alpha1.QService, flags *Flags) error {
+func (r *QServiceReconciler) applyDeployment(ctx context.Context, qsvc *servingv1alpha1.QService) error {
 	deployment := converter.ToDeployment(qsvc)
 	r.setControllerReference(deployment, qsvc)
 
