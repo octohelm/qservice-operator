@@ -5,7 +5,16 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.4.0](https://github.com/octohelm/qservice-operator/compare/v0.3.1...v0.4.0)
+
+### Features
+
+* **feat** refactor to own by directly related ([b8c8d87](https://github.com/octohelm/qservice-operator/commit/b8c8d87e6d0868a405c0b2706bd61496c7d9e8fb))
+
+
+
 # [0.3.1](https://github.com/octohelm/qservice-operator/compare/v0.3.0...v0.3.1)
+
 
 
 # [0.3.0](https://github.com/octohelm/qservice-operator/compare/v0.2.3...v0.3.0)
