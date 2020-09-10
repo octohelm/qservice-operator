@@ -5,7 +5,16 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.5.2](https://github.com/octohelm/qservice-operator/compare/v0.5.1...v0.5.2)
+
+### Bug Fixes
+
+* **fix** sync related ingress as QService status ([60216b9](https://github.com/octohelm/qservice-operator/commit/60216b9dffe47abbbb28cbdfb6adedc3fcfc0188))
+
+
+
 # [0.5.1](https://github.com/octohelm/qservice-operator/compare/v0.5.0...v0.5.1)
+
 
 
 # [0.5.0](https://github.com/octohelm/qservice-operator/compare/v0.4.0...v0.5.0)
