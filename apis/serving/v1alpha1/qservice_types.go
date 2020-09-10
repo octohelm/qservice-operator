@@ -83,8 +83,9 @@ type Resources map[string]strfmt.RequestAndLimit
 
 // QServiceStatus defines the observed state of QService
 type QServiceStatus struct {
-	DeploymentStage         string `json:"deploymentStage,omitempty"`
-	DeploymentComments      string `json:"deploymentComments,omitempty"`
+	DeploymentStage         string                      `json:"deploymentStage,omitempty"`
+	DeploymentComments      string                      `json:"deploymentComments,omitempty"`
+	Ingresses               map[string][]strfmt.Ingress `json:"ingresses,omitempty"`
 	appsv1.DeploymentStatus `json:",inline"`
 }
 

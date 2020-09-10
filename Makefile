@@ -21,7 +21,6 @@ build.dockerx:
 		--push \
 		--build-arg=GOPROXY=${GOPROXY} \
 		--platform=linux/amd64,linux/arm64 \
-		-t octohelm/qservice-operator:${VERSION} \
 		-t hub-dev.demo.querycap.com/octohelm/qservice-operator:${VERSION} \
 		-f Dockerfile .
 

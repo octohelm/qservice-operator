@@ -8,6 +8,12 @@ import (
 	"reflect"
 	"time"
 
+	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/selection"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/source"
+
 	"github.com/octohelm/qservice-operator/pkg/controllerutil"
 	"github.com/pkg/errors"
 
@@ -39,6 +45,18 @@ func (r *QServiceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&corev1.Secret{}).
 		Owns(&corev1.Service{}).
 		Owns(&appsv1.Deployment{}).
+		Watches(&source.Kind{Type: &extensionsv1beta1.Ingress{}}, &handler.EnqueueRequestsFromMapFunc{
+			ToRequests: handler.ToRequestsFunc(func(object handler.MapObject) []reconcile.Request {
+				// to trigger sync ingresses as QService status
+				if app, ok := object.Meta.GetLabels()["app"]; ok {
+					return []reconcile.Request{{NamespacedName: types.NamespacedName{
+						Name:      app,
+						Namespace: object.Meta.GetNamespace(),
+					}}}
+				}
+				return []reconcile.Request{}
+			}),
+		}).
 		Complete(r)
 }
 
@@ -54,7 +72,6 @@ func (r *QServiceReconciler) Reconcile(request reconcile.Request) (reconcile.Res
 	err := r.Client.Get(ctx, request.NamespacedName, qsvc)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			log.Info("QService resource not found. Ignoring since object must be deleted")
 			return reconcile.Result{}, nil
 		}
 		log.Error(err, "Failed to get QService")
@@ -66,7 +83,10 @@ func (r *QServiceReconciler) Reconcile(request reconcile.Request) (reconcile.Res
 		return reconcile.Result{}, err
 	}
 
-	if err := r.updateDeploymentStage(ctx, qsvc); err != nil {
+	_ = r.updateStatusFromDeployment(ctx, qsvc)
+	_ = r.updateStatusFromIngresses(ctx, qsvc)
+
+	if err := r.Client.Status().Update(ctx, qsvc); err != nil {
 		log.Error(err, "update status failed")
 		return reconcile.Result{}, nil
 	}
@@ -74,7 +94,50 @@ func (r *QServiceReconciler) Reconcile(request reconcile.Request) (reconcile.Res
 	return reconcile.Result{}, nil
 }
 
-func (r *QServiceReconciler) updateDeploymentStage(ctx context.Context, qsvc *servingv1alpha1.QService) error {
+func (r *QServiceReconciler) updateStatusFromIngresses(ctx context.Context, qsvc *servingv1alpha1.QService) error {
+	list := &extensionsv1beta1.IngressList{}
+
+	s, _ := labels.NewRequirement("app", selection.Equals, []string{qsvc.Name})
+
+	if err := r.Client.List(ctx,
+		list,
+		client.InNamespace(qsvc.Namespace),
+		client.MatchingLabelsSelector{Selector: labels.NewSelector().Add(*s)},
+	); err != nil {
+		return err
+	}
+
+	if len(list.Items) == 0 {
+		return nil
+	}
+
+	qsvc.Status.Ingresses = map[string][]strfmt.Ingress{}
+
+	for i := range list.Items {
+		item := list.Items[i]
+
+		for j := range item.Spec.Rules {
+			r := item.Spec.Rules[j]
+
+			for k := range r.HTTP.Paths {
+				p := r.HTTP.Paths[k]
+
+				i := strfmt.Ingress{
+					Scheme: "http",
+					Host:   r.Host,
+					Path:   p.Path,
+					Port:   uint16(p.Backend.ServicePort.IntValue()),
+				}
+
+				qsvc.Status.Ingresses[item.Name] = append(qsvc.Status.Ingresses[item.Name], i)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (r *QServiceReconciler) updateStatusFromDeployment(ctx context.Context, qsvc *servingv1alpha1.QService) error {
 	deployment := &appsv1.Deployment{}
 
 	if err := r.Client.Get(ctx, types.NamespacedName{Name: qsvc.Name, Namespace: qsvc.Namespace}, deployment); err != nil {
@@ -99,11 +162,6 @@ func (r *QServiceReconciler) updateDeploymentStage(ctx context.Context, qsvc *se
 
 	qsvc.Status.DeploymentStatus = deployment.Status
 	qsvc.Status.DeploymentStage, qsvc.Status.DeploymentComments = toDeploymentStage(&deployment.Status, podList.Items)
-
-	err := r.Client.Status().Update(ctx, qsvc)
-	if err != nil {
-		return err
-	}
 
 	// update deployment status to trigger lifecycle for getting container status from pod list
 	if qsvc.Status.DeploymentStage == "PROCESSING" {
