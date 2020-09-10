@@ -75,7 +75,7 @@ func (r *IngressReconciler) Reconcile(request reconcile.Request) (reconcile.Resu
 		vs := vss[i]
 		r.setControllerReference(vs, ingress)
 
-		if err := applyVirtualService(ctx, ingress.Namespace, vs); err != nil {
+		if err := applyVirtualService(ctx, vs); err != nil {
 			return reconcile.Result{}, nil
 		}
 	}

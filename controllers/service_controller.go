@@ -18,16 +18,22 @@ package controllers
 
 import (
 	"context"
+	"fmt"
+	"os"
+	"strings"
 
 	"github.com/go-logr/logr"
 	"github.com/octohelm/qservice-operator/pkg/controllerutil"
 	"github.com/octohelm/qservice-operator/pkg/converter"
 	istiov1beta1 "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
+	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -49,14 +55,7 @@ func (r *ServiceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 func (r *ServiceReconciler) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	ctx := context.Background()
-
-	ok, err := r.istioInjectionEnabledInNamespace(ctx, request.Namespace)
-	if err != nil {
-		return reconcile.Result{}, err
-	}
-	if !ok {
-		return reconcile.Result{}, nil
-	}
+	log := r.Log.WithValues("namespace", request.Namespace, "name", request.Name)
 
 	s := &corev1.Service{}
 	if err := r.Client.Get(ctx, request.NamespacedName, s); err != nil {
@@ -66,13 +65,26 @@ func (r *ServiceReconciler) Reconcile(request reconcile.Request) (reconcile.Resu
 		return reconcile.Result{}, err
 	}
 
+	if s.Spec.Type != v1.ServiceTypeClusterIP {
+		return reconcile.Result{}, nil
+	}
+
 	ctx = controllerutil.ContextWithControllerClient(ctx, r.Client)
 
-	vs := converter.ToClusterVirtualServiceFromService(s)
-	r.setControllerReference(vs, s)
+	if err := r.applyAutoIngress(ctx, s); err != nil {
+		log.Error(err, "apply ingress failed")
+		return reconcile.Result{}, err
+	}
 
-	if err := applyVirtualService(ctx, s.Namespace, vs); err != nil {
-		return reconcile.Result{}, nil
+	ok, _ := r.istioInjectionEnabledInNamespace(ctx, request.Namespace)
+	if ok {
+		// apply cluster VirtualService for istio
+		vs := converter.ToClusterVirtualServiceFromService(s)
+		r.setControllerReference(vs, s)
+
+		if err := applyVirtualService(ctx, vs); err != nil {
+			return reconcile.Result{}, err
+		}
 	}
 
 	return reconcile.Result{}, nil
@@ -92,4 +104,67 @@ func (r *ServiceReconciler) istioInjectionEnabledInNamespace(ctx context.Context
 		return false, err
 	}
 	return n.Labels["istio-injection"] == "enabled", nil
+}
+
+var autoIngressHosts = func(v string) map[string]bool {
+	if v == "" {
+		return map[string]bool{}
+	}
+	m := map[string]bool{}
+	for _, h := range strings.Split(v, ",") {
+		m[h] = true
+	}
+	return m
+}(os.Getenv("AUTO_INGRESS_HOSTS"))
+
+func (r *ServiceReconciler) applyAutoIngress(ctx context.Context, svc *v1.Service) error {
+	if len(autoIngressHosts) == 0 {
+		return nil
+	}
+
+	for autoIngressHost := range autoIngressHosts {
+		ingress := serviceToIngress(svc, fmt.Sprintf("%s---%s.%s", svc.Name, svc.Namespace, autoIngressHost))
+		r.setControllerReference(ingress, svc)
+
+		if err := applyIngress(ctx, ingress); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func serviceToIngress(svc *v1.Service, hostname string) *extensionsv1beta1.Ingress {
+	ingress := &extensionsv1beta1.Ingress{}
+	ingress.Namespace = svc.Namespace
+	ingress.Name = ingress.Name + "-" + converter.HashID(hostname)
+	ingress.Labels = svc.Labels
+
+	ingress.Annotations = map[string]string{
+		"kubernetes.io/ingress.class": "nginx",
+	}
+
+	port := uint16(80)
+
+	if len(svc.Spec.Ports) > 0 {
+		port = uint16(svc.Spec.Ports[0].Port)
+	}
+
+	ingress.Spec.Rules = append(ingress.Spec.Rules, extensionsv1beta1.IngressRule{
+		Host: hostname,
+		IngressRuleValue: extensionsv1beta1.IngressRuleValue{
+			HTTP: &extensionsv1beta1.HTTPIngressRuleValue{
+				Paths: []extensionsv1beta1.HTTPIngressPath{
+					{
+						Backend: extensionsv1beta1.IngressBackend{
+							ServiceName: svc.Name,
+							ServicePort: intstr.FromInt(int(port)),
+						},
+					},
+				},
+			},
+		},
+	})
+
+	return ingress
 }

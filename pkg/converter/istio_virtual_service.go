@@ -42,7 +42,7 @@ func ToExportedVirtualServicesByIngress(ingress *extensionsv1beta1.Ingress) (lis
 
 		vs := &istioapis.VirtualService{}
 		vs.Namespace = ingress.Namespace
-		vs.Name = ingress.Name + "-" + hashID(r.Host)
+		vs.Name = ingress.Name + "-" + HashID(r.Host)
 		vs.Spec.Hosts = []string{r.Host}
 
 		gatewayName := convertToGatewayName(r.Host)

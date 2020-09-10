@@ -282,11 +282,6 @@ func (in *QServiceSpec) DeepCopyInto(out *QServiceSpec) {
 		*out = make([]strfmt.PortForward, len(*in))
 		copy(*out, *in)
 	}
-	if in.Ingresses != nil {
-		in, out := &in.Ingresses, &out.Ingresses
-		*out = make([]strfmt.Ingress, len(*in))
-		copy(*out, *in)
-	}
 	if in.Volumes != nil {
 		in, out := &in.Volumes, &out.Volumes
 		*out = make(Volumes, len(*in))

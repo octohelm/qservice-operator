@@ -5,9 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
 	"reflect"
-	"strings"
 	"time"
 
 	"github.com/octohelm/qservice-operator/pkg/controllerutil"
@@ -51,23 +49,27 @@ func (r *QServiceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 func (r *QServiceReconciler) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	ctx := context.Background()
 
+	log := r.Log.WithValues("namespace", request.Namespace, "name", request.Name)
+
 	qsvc := &servingv1alpha1.QService{}
 
 	err := r.Client.Get(ctx, request.NamespacedName, qsvc)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			r.Log.Info("QService resource not found. Ignoring since object must be deleted")
+			log.Info("QService resource not found. Ignoring since object must be deleted")
 			return reconcile.Result{}, nil
 		}
-		r.Log.Error(err, "Failed to get QService")
+		log.Error(err, "Failed to get QService")
 		return reconcile.Result{}, err
 	}
 
 	if err := r.applyQService(ctx, qsvc); err != nil {
+		log.Error(err, "apply failed")
 		return reconcile.Result{}, err
 	}
 
 	if err := r.updateDeploymentStage(ctx, qsvc); err != nil {
+		log.Error(err, "update status failed")
 		return reconcile.Result{}, nil
 	}
 
@@ -189,7 +191,6 @@ func (r *QServiceReconciler) applyQService(ctx context.Context, qsvc *servingv1a
 		r.applyImagePullSecret,
 		r.applyDeployment,
 		r.applyService,
-		r.applyIngress,
 	)(ctx, qsvc)
 }
 
@@ -207,70 +208,12 @@ func with(processes ...process) process {
 	}
 }
 
-var autoIngressHosts = toAutoIngressHosts(os.Getenv("AUTO_INGRESS_HOSTS"))
-
-func toAutoIngressHosts(v string) map[string]bool {
-	if v == "" {
-		return map[string]bool{}
-	}
-
-	m := map[string]bool{}
-
-	for _, h := range strings.Split(v, ",") {
-		m[h] = true
-	}
-
-	return m
-}
-
-func (r *QServiceReconciler) applyIngress(ctx context.Context, qsvc *servingv1alpha1.QService) error {
-	if len(autoIngressHosts) > 0 {
-		m := map[string]bool{}
-
-		for i := range qsvc.Spec.Ingresses {
-			ingress := qsvc.Spec.Ingresses[i]
-			m[ingress.Host] = true
-		}
-
-		for autoIngressHost := range autoIngressHosts {
-			h := fmt.Sprintf("%s---%s.%s", qsvc.Name, qsvc.Namespace, autoIngressHost)
-
-			if m[h] {
-				continue
-			}
-
-			port := uint16(80)
-
-			if len(qsvc.Spec.Ports) > 0 {
-				port = qsvc.Spec.Ports[0].Port
-			}
-
-			qsvc.Spec.Ingresses = append(qsvc.Spec.Ingresses, strfmt.Ingress{
-				Scheme: "http",
-				Host:   h,
-				Port:   port,
-			})
-		}
-	}
-
-	if len(qsvc.Spec.Ingresses) > 0 {
-		ingress := converter.ToIngress(qsvc)
-		r.setControllerReference(ingress, qsvc)
-
-		if err := applyIngress(ctx, qsvc.Namespace, ingress); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func (r *QServiceReconciler) applyService(ctx context.Context, qsvc *servingv1alpha1.QService) error {
 	s := converter.ToService(qsvc)
 	r.setControllerReference(s, qsvc)
 
 	if len(s.Spec.Ports) > 0 {
-		if err := applyService(ctx, qsvc.Namespace, s); err != nil {
+		if err := applyService(ctx, s); err != nil {
 			return err
 		}
 	}
@@ -295,7 +238,7 @@ func (r *QServiceReconciler) applyImagePullSecret(ctx context.Context, qsvc *ser
 		secret := converter.ToImagePullSecret(ips, qsvc.Namespace)
 		r.setControllerReference(secret, qsvc)
 
-		if err := applySecret(ctx, qsvc.Namespace, secret); err != nil {
+		if err := applySecret(ctx, secret); err != nil {
 			return err
 		}
 	}
@@ -307,7 +250,7 @@ func (r *QServiceReconciler) applyDeployment(ctx context.Context, qsvc *servingv
 	deployment := converter.ToDeployment(qsvc)
 	r.setControllerReference(deployment, qsvc)
 
-	if err := applyDeployment(ctx, qsvc.Namespace, deployment); err != nil {
+	if err := applyDeployment(ctx, deployment); err != nil {
 		return err
 	}
 

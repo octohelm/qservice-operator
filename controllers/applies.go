@@ -13,12 +13,12 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-func applyDeployment(ctx context.Context, namespace string, deployment *appsv1.Deployment) error {
+func applyDeployment(ctx context.Context, deployment *appsv1.Deployment) error {
 	c := controllerutil.ControllerClientFromContext(ctx)
 
 	current := &appsv1.Deployment{}
 
-	err := c.Get(ctx, types.NamespacedName{Name: deployment.Name, Namespace: namespace}, current)
+	err := c.Get(ctx, types.NamespacedName{Name: deployment.Name, Namespace: deployment.Namespace}, current)
 	if err != nil {
 		if !apierrors.IsNotFound(err) {
 			return nil
@@ -33,12 +33,12 @@ func applyDeployment(ctx context.Context, namespace string, deployment *appsv1.D
 	return nil
 }
 
-func applyIngress(ctx context.Context, namespace string, ingress *extensionsv1beta1.Ingress) error {
+func applyIngress(ctx context.Context, ingress *extensionsv1beta1.Ingress) error {
 	c := controllerutil.ControllerClientFromContext(ctx)
 
 	current := &extensionsv1beta1.Ingress{}
 
-	err := c.Get(ctx, types.NamespacedName{Name: ingress.Name, Namespace: namespace}, current)
+	err := c.Get(ctx, types.NamespacedName{Name: ingress.Name, Namespace: ingress.Namespace}, current)
 	if err != nil {
 		if !apierrors.IsNotFound(err) {
 			return nil
@@ -53,12 +53,12 @@ func applyIngress(ctx context.Context, namespace string, ingress *extensionsv1be
 	return nil
 }
 
-func applyService(ctx context.Context, namespace string, service *corev1.Service) error {
+func applyService(ctx context.Context, service *corev1.Service) error {
 	c := controllerutil.ControllerClientFromContext(ctx)
 
 	current := &corev1.Service{}
 
-	err := c.Get(ctx, types.NamespacedName{Name: service.Name, Namespace: namespace}, current)
+	err := c.Get(ctx, types.NamespacedName{Name: service.Name, Namespace: service.Namespace}, current)
 	if err != nil {
 		if !apierrors.IsNotFound(err) {
 			return nil
@@ -73,12 +73,12 @@ func applyService(ctx context.Context, namespace string, service *corev1.Service
 	return nil
 }
 
-func applySecret(ctx context.Context, namespace string, secret *corev1.Secret) error {
+func applySecret(ctx context.Context, secret *corev1.Secret) error {
 	c := controllerutil.ControllerClientFromContext(ctx)
 
 	current := &corev1.Secret{}
 
-	err := c.Get(ctx, types.NamespacedName{Name: secret.Name, Namespace: namespace}, current)
+	err := c.Get(ctx, types.NamespacedName{Name: secret.Name, Namespace: secret.Namespace}, current)
 	if err != nil {
 		if !apierrors.IsNotFound(err) {
 			return nil
@@ -93,12 +93,12 @@ func applySecret(ctx context.Context, namespace string, secret *corev1.Secret) e
 	return nil
 }
 
-func applyVirtualService(ctx context.Context, namespace string, vs *istiov1beta1.VirtualService) error {
+func applyVirtualService(ctx context.Context, vs *istiov1beta1.VirtualService) error {
 	c := controllerutil.ControllerClientFromContext(ctx)
 
 	current := &istiov1beta1.VirtualService{}
 
-	err := c.Get(ctx, types.NamespacedName{Name: vs.Name, Namespace: namespace}, current)
+	err := c.Get(ctx, types.NamespacedName{Name: vs.Name, Namespace: vs.Namespace}, current)
 	if err != nil {
 		if !apierrors.IsNotFound(err) {
 			return nil

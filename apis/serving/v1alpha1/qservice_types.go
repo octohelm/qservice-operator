@@ -12,7 +12,6 @@ type QServiceSpec struct {
 	Replicas    *int32 `json:"replicas,omitempty"`
 	Pod         `json:",inline"`
 	Ports       []strfmt.PortForward `json:"ports,omitempty"`
-	Ingresses   []strfmt.Ingress     `json:"ingresses,omitempty"`
 	Volumes     Volumes              `json:"volumes,omitempty"`
 	Resources   Resources            `json:"resources,omitempty"`
 	Strategy    *strfmt.Strategy     `json:"strategy,omitempty"`

@@ -30,6 +30,6 @@ func cloneKV(from map[string]string) map[string]string {
 	return m
 }
 
-func hashID(v string) string {
+func HashID(v string) string {
 	return strconv.FormatUint(uint64(crc32.Checksum([]byte(v), crc32.MakeTable(crc32.IEEE))), 16)
 }
