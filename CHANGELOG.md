@@ -5,6 +5,19 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.5.0](https://github.com/octohelm/qservice-operator/compare/v0.4.0...v0.5.0)
+
+### Bug Fixes
+
+* **fix** crd must contains subresources with status for sync status ([70bdf79](https://github.com/octohelm/qservice-operator/commit/70bdf79cf2c2b5f7e1d98c29ce2b794db89707f0))
+
+
+### Features
+
+* **feat** drop ingresses and auto ingress from service with ClusterIP ([c72cb23](https://github.com/octohelm/qservice-operator/commit/c72cb23396fe2f2c1bc0ce0038a1e9768a794e2b))
+
+
+
 # [0.4.0](https://github.com/octohelm/qservice-operator/compare/v0.3.1...v0.4.0)
 
 ### Features
