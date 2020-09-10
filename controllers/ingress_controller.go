@@ -51,10 +51,7 @@ func (r *IngressReconciler) SetupWithManager(mgr ctrl.Manager) error {
 func (r *IngressReconciler) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	ctx := context.Background()
 
-	ok, err := r.istioInjectionEnabledInNamespace(ctx, request.Namespace)
-	if err != nil {
-		return reconcile.Result{}, err
-	}
+	ok := r.isClusterWithIstio(ctx)
 	if !ok {
 		return reconcile.Result{}, nil
 	}
@@ -90,11 +87,15 @@ func (r *IngressReconciler) setControllerReference(obj metav1.Object, owner meta
 	obj.SetAnnotations(controllerutil.AnnotateControllerGeneration(obj.GetAnnotations(), owner.GetGeneration()))
 }
 
-func (r *IngressReconciler) istioInjectionEnabledInNamespace(ctx context.Context, namespace string) (bool, error) {
+func (r *IngressReconciler) isClusterWithIstio(ctx context.Context) bool {
 	n := &corev1.Namespace{}
-	err := r.Client.Get(ctx, types.NamespacedName{Name: namespace, Namespace: ""}, n)
+	err := r.Client.Get(ctx, types.NamespacedName{Name: "istio-system", Namespace: ""}, n)
 	if err != nil {
-		return false, err
+		if apierrors.IsNotFound(err) {
+			return false
+		}
+		r.Log.Error(err, "")
+		return false
 	}
-	return n.Labels["istio-injection"] == "enabled", nil
+	return true
 }

@@ -25,14 +25,12 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/octohelm/qservice-operator/pkg/controllerutil"
 	"github.com/octohelm/qservice-operator/pkg/converter"
-	istiov1beta1 "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -49,7 +47,7 @@ type ServiceReconciler struct {
 func (r *ServiceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&corev1.Service{}).
-		Owns(&istiov1beta1.VirtualService{}).
+		Owns(&extensionsv1beta1.Ingress{}).
 		Complete(r)
 }
 
@@ -65,26 +63,11 @@ func (r *ServiceReconciler) Reconcile(request reconcile.Request) (reconcile.Resu
 		return reconcile.Result{}, err
 	}
 
-	if s.Spec.Type != v1.ServiceTypeClusterIP {
-		return reconcile.Result{}, nil
-	}
-
 	ctx = controllerutil.ContextWithControllerClient(ctx, r.Client)
 
 	if err := r.applyAutoIngress(ctx, s); err != nil {
 		log.Error(err, "apply ingress failed")
 		return reconcile.Result{}, err
-	}
-
-	ok, _ := r.istioInjectionEnabledInNamespace(ctx, request.Namespace)
-	if ok {
-		// apply cluster VirtualService for istio
-		vs := converter.ToClusterVirtualServiceFromService(s)
-		r.setControllerReference(vs, s)
-
-		if err := applyVirtualService(ctx, vs); err != nil {
-			return reconcile.Result{}, err
-		}
 	}
 
 	return reconcile.Result{}, nil
@@ -95,15 +78,6 @@ func (r *ServiceReconciler) setControllerReference(obj metav1.Object, owner meta
 		r.Log.Error(err, "")
 	}
 	obj.SetAnnotations(controllerutil.AnnotateControllerGeneration(obj.GetAnnotations(), owner.GetGeneration()))
-}
-
-func (r *ServiceReconciler) istioInjectionEnabledInNamespace(ctx context.Context, namespace string) (bool, error) {
-	n := &corev1.Namespace{}
-	err := r.Client.Get(ctx, types.NamespacedName{Name: namespace, Namespace: ""}, n)
-	if err != nil {
-		return false, err
-	}
-	return n.Labels["istio-injection"] == "enabled", nil
 }
 
 var autoIngressHosts = func(v string) map[string]bool {
@@ -122,12 +96,20 @@ func (r *ServiceReconciler) applyAutoIngress(ctx context.Context, svc *v1.Servic
 		return nil
 	}
 
-	for autoIngressHost := range autoIngressHosts {
-		ingress := serviceToIngress(svc, fmt.Sprintf("%s---%s.%s", svc.Name, svc.Namespace, autoIngressHost))
-		r.setControllerReference(ingress, svc)
+	if len(svc.Spec.Ports) == 0 {
+		return nil
+	}
 
-		if err := applyIngress(ctx, ingress); err != nil {
-			return err
+	portName := svc.Spec.Ports[0].Name
+
+	if strings.HasPrefix(portName, "http") || strings.HasPrefix(portName, "grpc") {
+		for autoIngressHost := range autoIngressHosts {
+			ingress := serviceToIngress(svc, fmt.Sprintf("%s---%s.%s", svc.Name, svc.Namespace, autoIngressHost))
+			r.setControllerReference(ingress, svc)
+
+			if err := applyIngress(ctx, ingress); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -137,7 +119,7 @@ func (r *ServiceReconciler) applyAutoIngress(ctx context.Context, svc *v1.Servic
 func serviceToIngress(svc *v1.Service, hostname string) *extensionsv1beta1.Ingress {
 	ingress := &extensionsv1beta1.Ingress{}
 	ingress.Namespace = svc.Namespace
-	ingress.Name = ingress.Name + "-" + converter.HashID(hostname)
+	ingress.Name = svc.Name + "-" + converter.HashID(hostname)
 	ingress.Labels = svc.Labels
 
 	ingress.Annotations = map[string]string{

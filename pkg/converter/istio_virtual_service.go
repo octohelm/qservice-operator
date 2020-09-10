@@ -4,37 +4,49 @@ import (
 	"fmt"
 	"strings"
 
-	corev1 "k8s.io/api/core/v1"
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 
 	istiotypes "istio.io/api/networking/v1alpha3"
 	istioapis "istio.io/client-go/pkg/apis/networking/v1alpha3"
 )
 
-func ToClusterVirtualServiceFromService(s *corev1.Service) *istioapis.VirtualService {
-	vs := &istioapis.VirtualService{}
-	vs.Namespace = s.Namespace
-	vs.Name = s.Name
-
-	vs.Labels = s.Labels
-	vs.Annotations = s.Annotations
-
-	vs.Spec.Hosts = []string{s.Name}
-
-	vs.Spec.Http = []*istiotypes.HTTPRoute{
-		{
-			Route: []*istiotypes.HTTPRouteDestination{
-				{
-					Destination: &istiotypes.Destination{
-						Host: s.Name,
-					},
-				},
-			},
-		},
-	}
-
-	return vs
-}
+//func ToClusterVirtualServiceFromService(s *corev1.Service) *istioapis.VirtualService {
+//	if s.Spec.Type != corev1.ServiceTypeClusterIP {
+//		return nil
+//	}
+//
+//	vs := &istioapis.VirtualService{}
+//	vs.Namespace = s.Namespace
+//	vs.Name = s.Name
+//	vs.Labels = s.Labels
+//	vs.Annotations = s.Annotations
+//
+//	vs.Spec.Hosts = []string{s.Name}
+//
+//	for i := range s.Spec.Ports {
+//		port := s.Spec.Ports[i]
+//
+//		if port.Name != "" {
+//			istio.P
+//
+//
+//		}
+//
+//		vs.Spec.Tcp = []*istiotypes.TCPRoute{
+//			{
+//				Route: []*istiotypes.RouteDestination{
+//					{
+//						Destination: &istiotypes.Destination{
+//							Host: s.Name,
+//						},
+//					},
+//				},
+//			},
+//		}
+//	}
+//
+//	return vs
+//}
 
 func ToExportedVirtualServicesByIngress(ingress *extensionsv1beta1.Ingress) (list []*istioapis.VirtualService) {
 	for i := range ingress.Spec.Rules {
