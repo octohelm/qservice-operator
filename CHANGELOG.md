@@ -5,6 +5,14 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.6.1](https://github.com/octohelm/qservice-operator/compare/v0.6.0...v0.6.1)
+
+### Bug Fixes
+
+* **fix** crd should apply by k8s client directly ([07c9c52](https://github.com/octohelm/qservice-operator/commit/07c9c524ee40b1363e31319a75ad277b2f4d4823))
+
+
+
 # [0.6.0](https://github.com/octohelm/qservice-operator/compare/v0.5.4...v0.6.0)
 
 ### Features
