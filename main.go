@@ -1,26 +1,23 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"os"
 
 	"github.com/octohelm/qservice-operator/apis/serving"
-	"github.com/octohelm/qservice-operator/pkg/controllerutil"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-
+	servingapis "github.com/octohelm/qservice-operator/apis/serving/v1alpha1"
 	"github.com/octohelm/qservice-operator/controllers"
+	"github.com/octohelm/qservice-operator/pkg/controllerutil"
 	"github.com/octohelm/qservice-operator/version"
 	"github.com/pkg/errors"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-
-	servingapis "github.com/octohelm/qservice-operator/apis/serving/v1alpha1"
 	istioapis "istio.io/client-go/pkg/apis/networking/v1alpha3"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
 var (
@@ -38,17 +35,16 @@ func init() {
 }
 
 func start(ctrlOpt ctrl.Options) error {
-	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrlOpt)
+	restConfig := ctrl.GetConfigOrDie()
+
+	mgr, err := ctrl.NewManager(restConfig, ctrlOpt)
 	if err != nil {
 		return errors.Wrap(err, "unable to start manager")
 	}
-
-	ctx := controllerutil.ContextWithControllerClient(context.Background(), mgr.GetClient())
-
-	for i := range crds {
-		if err := controllerutil.ApplyCRD(ctx, crds[i]); err != nil {
-			return errors.Wrap(err, "unable to create crd")
-		}
+	if err := controllerutil.ApplyCRDs(restConfig, crds...); err != nil {
+		return errors.Wrap(err, "unable to create crds")
+	} else {
+		ctrl.Log.WithName("crd").Info("crds created")
 	}
 
 	if err := controllers.SetupWithManager(mgr); err != nil {

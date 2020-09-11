@@ -2,11 +2,11 @@ package serving
 
 import (
 	"github.com/octohelm/qservice-operator/apis/serving/v1alpha1"
-	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
-func QServiceCustomResourceDefinition() *v1.CustomResourceDefinition {
-	crd := &v1.CustomResourceDefinition{}
+func QServiceCustomResourceDefinition() *apiextensionsv1.CustomResourceDefinition {
+	crd := &apiextensionsv1.CustomResourceDefinition{}
 
 	crdNames := apiextensionsv1.CustomResourceDefinitionNames{
 		Kind:       "QService",
