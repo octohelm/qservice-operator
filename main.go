@@ -1,8 +1,13 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"os"
+
+	"github.com/octohelm/qservice-operator/apis/serving"
+	"github.com/octohelm/qservice-operator/pkg/controllerutil"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 
 	"github.com/octohelm/qservice-operator/controllers"
 	"github.com/octohelm/qservice-operator/version"
@@ -20,6 +25,10 @@ import (
 
 var (
 	scheme = runtime.NewScheme()
+
+	crds = []*apiextensionsv1.CustomResourceDefinition{
+		serving.QServiceCustomResourceDefinition(),
+	}
 )
 
 func init() {
@@ -32,6 +41,14 @@ func start(ctrlOpt ctrl.Options) error {
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrlOpt)
 	if err != nil {
 		return errors.Wrap(err, "unable to start manager")
+	}
+
+	ctx := controllerutil.ContextWithControllerClient(context.Background(), mgr.GetClient())
+
+	for i := range crds {
+		if err := controllerutil.ApplyCRD(ctx, crds[i]); err != nil {
+			return errors.Wrap(err, "unable to create crd")
+		}
 	}
 
 	if err := controllers.SetupWithManager(mgr); err != nil {

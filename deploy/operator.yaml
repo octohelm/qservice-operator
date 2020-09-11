@@ -17,7 +17,7 @@ spec:
       serviceAccountName: qservice-operator
       containers:
         - name: qservice-operator
-          image: octohelm/qservice-operator:0.4.0
+          image: octohelm/qservice-operator:0.5.4
           args:
             - --enable-leader-election
           imagePullPolicy: Always

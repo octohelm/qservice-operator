@@ -1,12 +1,12 @@
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  namespace: octohelm
+  namespace: qservice-operator
   name: qservice-operator
 subjects:
 - kind: ServiceAccount
   name: qservice-operator
-  namespace: octohelm
+  namespace: qservice-operator
 roleRef:
   kind: ClusterRole
   name: qservice-operator

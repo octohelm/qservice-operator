@@ -4,6 +4,11 @@ import (
 	"context"
 	"strconv"
 
+	"github.com/octohelm/qservice-operator/pkg/apiutil"
+	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/types"
+
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,4 +47,20 @@ func ControllerClientFromContext(ctx context.Context) client.Client {
 		return i
 	}
 	return nil
+}
+
+func ApplyCRD(ctx context.Context, crd *apiextensions.CustomResourceDefinition) error {
+	c := ControllerClientFromContext(ctx)
+
+	current := &apiextensions.CustomResourceDefinition{}
+
+	err := c.Get(ctx, types.NamespacedName{Name: crd.Name, Namespace: ""}, current)
+	if err != nil {
+		if !apierrors.IsNotFound(err) {
+			return nil
+		}
+		return c.Create(ctx, crd)
+	}
+
+	return c.Patch(ctx, crd, apiutil.JSONPatch(types.MergePatchType))
 }

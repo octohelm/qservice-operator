@@ -1,4 +1,4 @@
-namespace: octohelm
+namespace: qservice-operator
 
 generatorOptions:
   disableNameSuffixHash: true
