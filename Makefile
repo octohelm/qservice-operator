@@ -2,11 +2,20 @@ PKG = $(shell cat go.mod | grep "^module " | sed -e "s/module //g")
 VERSION = $(shell cat .version)
 COMMIT_SHA ?= $(shell git describe --always)-devel
 
-GOBUILD = CGO_ENABLED=0 go build -ldflags "-X ${PKG}/version.Version=${VERSION}+sha.${COMMIT_SHA}"
-
+GOBUILD = CGO_ENABLED=0 go build -ldflags "-X $(PKG)/version.Version=$(VERSION)+sha.$(COMMIT_SHA)"
 GOBIN ?= ./bin
 GOOS ?= $(shell go env GOOS)
 GOARCH ?= $(shell go env GOARCH)
+
+HUB ?= hub-dev.demo.querycap.com/octohelm
+MIRROR ?= 1
+IMAGE_TAG ?= $(HUB)/qservice-operator:$(VERSION)
+
+MIRROR_IMAGE_TAG_FLAGS =
+
+ifeq ($(MIRROR),1)
+MIRROR_IMAGE_TAG_FLAGS := --tag docker.io/octohelm/qservice-operator:$(VERSION)
+endif
 
 run: apply-crd
 	AUTO_INGRESS_HOSTS=hw-dev.rktl.xyz \
@@ -21,9 +30,11 @@ build.dockerx:
 		--push \
 		--build-arg=GOPROXY=${GOPROXY} \
 		--platform=linux/amd64,linux/arm64 \
-		-t octohelm/qservice-operator:${VERSION} \
-		-t hub-dev.demo.querycap.com/octohelm/qservice-operator:${VERSION} \
+		--tag ${IMAGE_TAG} ${MIRROR_IMAGE_TAG_FLAGS}\
 		-f Dockerfile .
+
+build.dockerx.dev:
+	$(MAKE) build.dockerx VERSION=$(VERSION)-$(COMMIT_SHA) MIRROR=0
 
 lint:
 	husky hook pre-commit

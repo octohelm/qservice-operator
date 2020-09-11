@@ -120,7 +120,10 @@ func serviceToIngress(svc *v1.Service, hostname string) *extensionsv1beta1.Ingre
 	ingress := &extensionsv1beta1.Ingress{}
 	ingress.Namespace = svc.Namespace
 	ingress.Name = svc.Name + "-" + converter.HashID(hostname)
-	ingress.Labels = svc.Labels
+	ingress.Labels = svc.GetLabels()
+
+	ingress.Labels[LabelServiceName] = svc.Name
+	ingress.Labels[LabelBashHost] = BaseHost(hostname)
 
 	ingress.Annotations = map[string]string{
 		"kubernetes.io/ingress.class": "nginx",

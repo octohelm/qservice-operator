@@ -48,7 +48,7 @@ func (r *QServiceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Watches(&source.Kind{Type: &extensionsv1beta1.Ingress{}}, &handler.EnqueueRequestsFromMapFunc{
 			ToRequests: handler.ToRequestsFunc(func(object handler.MapObject) []reconcile.Request {
 				// to trigger sync ingresses as QService status
-				if app, ok := object.Meta.GetLabels()["app"]; ok {
+				if app, ok := object.Meta.GetLabels()[LabelServiceName]; ok {
 					return []reconcile.Request{{NamespacedName: types.NamespacedName{
 						Name:      app,
 						Namespace: object.Meta.GetNamespace(),
@@ -97,7 +97,7 @@ func (r *QServiceReconciler) Reconcile(request reconcile.Request) (reconcile.Res
 func (r *QServiceReconciler) updateStatusFromIngresses(ctx context.Context, qsvc *servingv1alpha1.QService) error {
 	list := &extensionsv1beta1.IngressList{}
 
-	s, _ := labels.NewRequirement("app", selection.Equals, []string{qsvc.Name})
+	s, _ := labels.NewRequirement(LabelServiceName, selection.Equals, []string{qsvc.Name})
 
 	if err := r.Client.List(ctx,
 		list,

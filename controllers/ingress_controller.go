@@ -51,10 +51,7 @@ func (r *IngressReconciler) SetupWithManager(mgr ctrl.Manager) error {
 func (r *IngressReconciler) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	ctx := context.Background()
 
-	ok := r.isClusterWithIstio(ctx)
-	if !ok {
-		return reconcile.Result{}, nil
-	}
+	log := r.Log.WithValues("namespace", request.Namespace, "name", request.Name)
 
 	ingress := &extensionsv1beta1.Ingress{}
 	if err := r.Client.Get(ctx, request.NamespacedName, ingress); err != nil {
@@ -66,18 +63,59 @@ func (r *IngressReconciler) Reconcile(request reconcile.Request) (reconcile.Resu
 
 	ctx = controllerutil.ContextWithControllerClient(ctx, r.Client)
 
-	vss := converter.ToExportedVirtualServicesByIngress(ingress)
+	_ = r.patchIngressIfNeed(ctx, ingress)
 
-	for i := range vss {
-		vs := vss[i]
-		r.setControllerReference(vs, ingress)
-
-		if err := applyVirtualService(ctx, vs); err != nil {
+	ok := r.isClusterWithIstio(ctx)
+	if ok {
+		if err := r.applyVirtualService(ctx, ingress); err != nil {
+			log.Error(err, "apply virtual service failed")
 			return reconcile.Result{}, nil
 		}
 	}
 
 	return reconcile.Result{}, nil
+}
+
+func (r *IngressReconciler) patchIngressIfNeed(ctx context.Context, ingress *extensionsv1beta1.Ingress) error {
+	needApplyPatch := false
+
+	if len(ingress.Spec.Rules) > 0 {
+		if _, ok := ingress.GetLabels()[LabelBashHost]; !ok {
+			ingress.Labels[LabelBashHost] = BaseHost(ingress.Spec.Rules[0].Host)
+			needApplyPatch = true
+		}
+
+		backend := ingress.Spec.Rules[0].HTTP
+		if len(backend.Paths) > 0 {
+			expectServiceName := backend.Paths[0].Backend.ServiceName
+
+			if serviceName := ingress.GetLabels()[LabelServiceName]; serviceName != expectServiceName {
+				ingress.Labels[LabelServiceName] = expectServiceName
+				needApplyPatch = true
+			}
+		}
+	}
+
+	if needApplyPatch {
+		if err := applyIngress(ctx, ingress); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (r *IngressReconciler) applyVirtualService(ctx context.Context, ingress *extensionsv1beta1.Ingress) error {
+	vss := converter.ToExportedVirtualServicesByIngress(ingress)
+	for i := range vss {
+		vs := vss[i]
+		r.setControllerReference(vs, ingress)
+
+		if err := applyVirtualService(ctx, vs); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (r *IngressReconciler) setControllerReference(obj metav1.Object, owner metav1.Object) {
