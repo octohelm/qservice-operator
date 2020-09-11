@@ -5,7 +5,16 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.5.4](https://github.com/octohelm/qservice-operator/compare/v0.5.3...v0.5.4)
+
+### Bug Fixes
+
+* **fix** default labels of ingress ([8dd2410](https://github.com/octohelm/qservice-operator/commit/8dd2410cadd6ee7fcdedf00cf9dd00909bfa0cb1))
+
+
+
 # [0.5.3](https://github.com/octohelm/qservice-operator/compare/v0.5.2...v0.5.3)
+
 
 
 # [0.5.2](https://github.com/octohelm/qservice-operator/compare/v0.5.1...v0.5.2)
