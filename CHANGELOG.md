@@ -5,6 +5,14 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.6.0](https://github.com/octohelm/qservice-operator/compare/v0.5.4...v0.6.0)
+
+### Features
+
+* **feat** crds automately apply ([8339cb4](https://github.com/octohelm/qservice-operator/commit/8339cb4441bdde73939bc30bd5cc83c93a74a0f7))
+
+
+
 # [0.5.4](https://github.com/octohelm/qservice-operator/compare/v0.5.3...v0.5.4)
 
 ### Bug Fixes
