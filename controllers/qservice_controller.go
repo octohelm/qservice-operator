@@ -48,11 +48,13 @@ func (r *QServiceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Watches(&source.Kind{Type: &extensionsv1beta1.Ingress{}}, &handler.EnqueueRequestsFromMapFunc{
 			ToRequests: handler.ToRequestsFunc(func(object handler.MapObject) []reconcile.Request {
 				// to trigger sync ingresses as QService status
-				if app, ok := object.Meta.GetLabels()[LabelServiceName]; ok {
-					return []reconcile.Request{{NamespacedName: types.NamespacedName{
-						Name:      app,
-						Namespace: object.Meta.GetNamespace(),
-					}}}
+				if labelSet := object.Meta.GetLabels(); labelSet != nil {
+					if app, ok := labelSet[LabelServiceName]; ok {
+						return []reconcile.Request{{NamespacedName: types.NamespacedName{
+							Name:      app,
+							Namespace: object.Meta.GetNamespace(),
+						}}}
+					}
 				}
 				return []reconcile.Request{}
 			}),

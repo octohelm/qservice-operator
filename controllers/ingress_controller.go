@@ -79,8 +79,12 @@ func (r *IngressReconciler) Reconcile(request reconcile.Request) (reconcile.Resu
 func (r *IngressReconciler) patchIngressIfNeed(ctx context.Context, ingress *extensionsv1beta1.Ingress) error {
 	needApplyPatch := false
 
+	if ingress.Labels == nil {
+		ingress.Labels = map[string]string{}
+	}
+
 	if len(ingress.Spec.Rules) > 0 {
-		if _, ok := ingress.GetLabels()[LabelBashHost]; !ok {
+		if _, ok := ingress.Labels[LabelBashHost]; !ok {
 			ingress.Labels[LabelBashHost] = BaseHost(ingress.Spec.Rules[0].Host)
 			needApplyPatch = true
 		}
@@ -89,7 +93,7 @@ func (r *IngressReconciler) patchIngressIfNeed(ctx context.Context, ingress *ext
 		if len(backend.Paths) > 0 {
 			expectServiceName := backend.Paths[0].Backend.ServiceName
 
-			if serviceName := ingress.GetLabels()[LabelServiceName]; serviceName != expectServiceName {
+			if serviceName := ingress.Labels[LabelServiceName]; serviceName != expectServiceName {
 				ingress.Labels[LabelServiceName] = expectServiceName
 				needApplyPatch = true
 			}
