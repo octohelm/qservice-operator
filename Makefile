@@ -40,10 +40,6 @@ lint:
 	husky hook pre-commit
 	husky hook commit-msg
 
-release:
-	git push
-	git push origin v${VERSION}
-
 apply-crd:
 	kubectl apply -f deploy/crds/serving.octohelm.tech_qservices_crd.yaml
 
