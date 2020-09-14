@@ -18,7 +18,5 @@ spec:
     - "80"
   envs:
     Pg_Endpoint: postgresql://pg:pg@172.16.0.77:5432/idp
-  ingresses:
-    - http://srv-test---default.hw-dev.octohelm.tech
   resources:
     cpu: 500/2000m

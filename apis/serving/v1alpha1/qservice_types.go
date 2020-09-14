@@ -7,7 +7,33 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// QServiceSpec defines the desired state of QService
+func init() {
+	SchemeBuilder.Register(&QService{}, &QServiceList{})
+}
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+type QServiceList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+	Items           []QService `json:"items"`
+}
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+type QService struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	Spec   QServiceSpec   `json:"spec,omitempty"`
+	Status QServiceStatus `json:"status,omitempty"`
+}
+
+type QServiceStatus struct {
+	DeploymentStage         string                      `json:"deploymentStage,omitempty"`
+	DeploymentComments      string                      `json:"deploymentComments,omitempty"`
+	Ingresses               map[string][]strfmt.Ingress `json:"ingresses,omitempty"`
+	appsv1.DeploymentStatus `json:",inline"`
+}
+
 type QServiceSpec struct {
 	Replicas    *int32 `json:"replicas,omitempty"`
 	Pod         `json:",inline"`
@@ -80,37 +106,3 @@ type ProbeOpts struct {
 type Volumes map[string]v1.VolumeSource
 
 type Resources map[string]strfmt.RequestAndLimit
-
-// QServiceStatus defines the observed state of QService
-type QServiceStatus struct {
-	DeploymentStage         string                      `json:"deploymentStage,omitempty"`
-	DeploymentComments      string                      `json:"deploymentComments,omitempty"`
-	Ingresses               map[string][]strfmt.Ingress `json:"ingresses,omitempty"`
-	appsv1.DeploymentStatus `json:",inline"`
-}
-
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-
-// QService is the Schema for the qservices API
-// +kubebuilder:subresource:status
-// +kubebuilder:resource:path=qservices,scope=Namespaced
-type QService struct {
-	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
-
-	Spec   QServiceSpec   `json:"spec,omitempty"`
-	Status QServiceStatus `json:"status,omitempty"`
-}
-
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-
-// QServiceList contains a list of QService
-type QServiceList struct {
-	metav1.TypeMeta `json:",inline"`
-	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []QService `json:"items"`
-}
-
-func init() {
-	SchemeBuilder.Register(&QService{}, &QServiceList{})
-}

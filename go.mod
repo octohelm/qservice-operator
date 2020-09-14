@@ -3,6 +3,7 @@ module github.com/octohelm/qservice-operator
 go 1.15
 
 require (
+	github.com/ghodss/yaml v1.0.0
 	github.com/go-courier/ptr v1.0.1
 	github.com/go-courier/reflectx v1.3.4
 	github.com/go-logr/logr v0.2.1
