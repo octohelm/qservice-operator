@@ -5,6 +5,19 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.7.0](https://github.com/octohelm/qservice-operator/compare/v0.6.1...v0.7.0)
+
+### Bug Fixes
+
+* **fix** ingress to virtual service support path type exact ([13c8ea9](https://github.com/octohelm/qservice-operator/commit/13c8ea92b7f46f162bfcc17ec85a17d789f45b58))
+
+
+### Features
+
+* **feat** abstract ingress gateways ([d6d0755](https://github.com/octohelm/qservice-operator/commit/d6d075507e03d51b03f86c81532258fe92f82bff))
+
+
+
 # [0.6.1](https://github.com/octohelm/qservice-operator/compare/v0.6.0...v0.6.1)
 
 ### Bug Fixes
