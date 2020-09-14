@@ -77,11 +77,19 @@ func ToExportedVirtualServicesByIngress(ingress *extensionsv1beta1.Ingress) (lis
 			}
 
 			if p.Path != "" {
+				stringMatch := &istiotypes.StringMatch{
+					MatchType: &istiotypes.StringMatch_Prefix{Prefix: p.Path},
+				}
+
+				if p.PathType != nil && *p.PathType == extensionsv1beta1.PathTypeExact {
+					stringMatch = &istiotypes.StringMatch{
+						MatchType: &istiotypes.StringMatch_Exact{Exact: p.Path},
+					}
+				}
+
 				route.Match = []*istiotypes.HTTPMatchRequest{
 					{
-						Uri: &istiotypes.StringMatch{
-							MatchType: &istiotypes.StringMatch_Prefix{Prefix: p.Path},
-						},
+						Uri: stringMatch,
 					},
 				}
 			}
