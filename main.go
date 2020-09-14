@@ -2,12 +2,12 @@ package main
 
 import (
 	"flag"
+	"github.com/octohelm/qservice-operator/pkg/controllerutil"
 	"os"
 
 	"github.com/octohelm/qservice-operator/apis/serving"
 	servingapis "github.com/octohelm/qservice-operator/apis/serving/v1alpha1"
 	"github.com/octohelm/qservice-operator/controllers"
-	"github.com/octohelm/qservice-operator/pkg/controllerutil"
 	"github.com/octohelm/qservice-operator/version"
 	"github.com/pkg/errors"
 	istioapis "istio.io/client-go/pkg/apis/networking/v1alpha3"
@@ -37,14 +37,21 @@ func init() {
 func start(ctrlOpt ctrl.Options) error {
 	restConfig := ctrl.GetConfigOrDie()
 
-	mgr, err := ctrl.NewManager(restConfig, ctrlOpt)
-	if err != nil {
-		return errors.Wrap(err, "unable to start manager")
-	}
 	if err := controllerutil.ApplyCRDs(restConfig, crds...); err != nil {
 		return errors.Wrap(err, "unable to create crds")
 	} else {
 		ctrl.Log.WithName("crd").Info("crds created")
+	}
+
+	if err := controllerutil.ApplyGateways(restConfig, controllers.IngressGateways.ToGateways()...); err != nil {
+		ctrl.Log.WithName("gateway").Error(err, "unable to create gateways")
+	} else {
+		ctrl.Log.WithName("gateway").Info("gateways created")
+	}
+
+	mgr, err := ctrl.NewManager(restConfig, ctrlOpt)
+	if err != nil {
+		return errors.Wrap(err, "unable to start manager")
 	}
 
 	if err := controllers.SetupWithManager(mgr); err != nil {

@@ -22,5 +22,5 @@ spec:
             - --enable-leader-election
           imagePullPolicy: Always
           env:
-            - name: AUTO_INGRESS_HOSTS
-              value: "hw-dev.rktl.xyz"
+            - name: INGRESS_GATEWAYS
+              value: "auto-internal:hw-dev.rktl.xyz"

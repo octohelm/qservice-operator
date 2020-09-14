@@ -5,7 +5,7 @@ import (
 
 	"github.com/octohelm/qservice-operator/pkg/apiutil"
 	"github.com/octohelm/qservice-operator/pkg/controllerutil"
-	istiov1beta1 "istio.io/client-go/pkg/apis/networking/v1alpha3"
+	istioneteworkingv1alpha3 "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
@@ -21,7 +21,7 @@ func applyDeployment(ctx context.Context, deployment *appsv1.Deployment) error {
 	err := c.Get(ctx, types.NamespacedName{Name: deployment.Name, Namespace: deployment.Namespace}, current)
 	if err != nil {
 		if !apierrors.IsNotFound(err) {
-			return nil
+			return err
 		}
 		return c.Create(ctx, deployment)
 	}
@@ -41,7 +41,7 @@ func applyIngress(ctx context.Context, ingress *extensionsv1beta1.Ingress) error
 	err := c.Get(ctx, types.NamespacedName{Name: ingress.Name, Namespace: ingress.Namespace}, current)
 	if err != nil {
 		if !apierrors.IsNotFound(err) {
-			return nil
+			return err
 		}
 		return c.Create(ctx, ingress)
 	}
@@ -61,7 +61,7 @@ func applyService(ctx context.Context, service *corev1.Service) error {
 	err := c.Get(ctx, types.NamespacedName{Name: service.Name, Namespace: service.Namespace}, current)
 	if err != nil {
 		if !apierrors.IsNotFound(err) {
-			return nil
+			return err
 		}
 		return c.Create(ctx, service)
 	}
@@ -81,7 +81,7 @@ func applySecret(ctx context.Context, secret *corev1.Secret) error {
 	err := c.Get(ctx, types.NamespacedName{Name: secret.Name, Namespace: secret.Namespace}, current)
 	if err != nil {
 		if !apierrors.IsNotFound(err) {
-			return nil
+			return err
 		}
 		return c.Create(ctx, secret)
 	}
@@ -93,15 +93,15 @@ func applySecret(ctx context.Context, secret *corev1.Secret) error {
 	return nil
 }
 
-func applyVirtualService(ctx context.Context, vs *istiov1beta1.VirtualService) error {
+func applyVirtualService(ctx context.Context, vs *istioneteworkingv1alpha3.VirtualService) error {
 	c := controllerutil.ControllerClientFromContext(ctx)
 
-	current := &istiov1beta1.VirtualService{}
+	current := &istioneteworkingv1alpha3.VirtualService{}
 
 	err := c.Get(ctx, types.NamespacedName{Name: vs.Name, Namespace: vs.Namespace}, current)
 	if err != nil {
 		if !apierrors.IsNotFound(err) {
-			return nil
+			return err
 		}
 		return c.Create(ctx, vs)
 	}

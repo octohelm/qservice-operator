@@ -18,7 +18,6 @@ package controllers
 
 import (
 	"context"
-
 	"github.com/go-logr/logr"
 	"github.com/octohelm/qservice-operator/pkg/controllerutil"
 	"github.com/octohelm/qservice-operator/pkg/converter"
@@ -63,7 +62,7 @@ func (r *IngressReconciler) Reconcile(request reconcile.Request) (reconcile.Resu
 
 	ctx = controllerutil.ContextWithControllerClient(ctx, r.Client)
 
-	_ = r.patchIngressIfNeed(ctx, ingress)
+	_ = r.patchAndDeriveIngressIfNeed(ctx, ingress)
 
 	ok := r.isClusterWithIstio(ctx)
 	if ok {
@@ -76,7 +75,7 @@ func (r *IngressReconciler) Reconcile(request reconcile.Request) (reconcile.Resu
 	return reconcile.Result{}, nil
 }
 
-func (r *IngressReconciler) patchIngressIfNeed(ctx context.Context, ingress *extensionsv1beta1.Ingress) error {
+func (r *IngressReconciler) patchAndDeriveIngressIfNeed(ctx context.Context, ingress *extensionsv1beta1.Ingress) error {
 	needApplyPatch := false
 
 	if ingress.Labels == nil {
@@ -84,9 +83,15 @@ func (r *IngressReconciler) patchIngressIfNeed(ctx context.Context, ingress *ext
 	}
 
 	if len(ingress.Spec.Rules) > 0 {
-		if _, ok := ingress.Labels[LabelBashHost]; !ok {
-			ingress.Labels[LabelBashHost] = BaseHost(ingress.Spec.Rules[0].Host)
-			needApplyPatch = true
+		host := ingress.Spec.Rules[0].Host
+
+		if _, ok := ingress.Labels[LabelGateway]; !ok {
+			g := getGateway(host)
+
+			if g, ok := IngressGateways.IngressGateway(g); ok {
+				ingress.Labels[LabelGateway] = g
+				needApplyPatch = true
+			}
 		}
 
 		backend := ingress.Spec.Rules[0].HTTP
@@ -96,6 +101,29 @@ func (r *IngressReconciler) patchIngressIfNeed(ctx context.Context, ingress *ext
 			if serviceName := ingress.Labels[LabelServiceName]; serviceName != expectServiceName {
 				ingress.Labels[LabelServiceName] = expectServiceName
 				needApplyPatch = true
+			}
+		}
+
+		derivedHost, ok := IngressGateways.IngressGatewayHost(host)
+		if ok {
+			if derivedHost != host {
+				ing := &extensionsv1beta1.Ingress{}
+				ing.Name = ingress.Name + "-" + converter.HashID(derivedHost)
+				ing.Namespace = ingress.Namespace
+				ing.Labels = ingress.Labels
+				ing.Annotations = ingress.Annotations
+				ing.Spec.Rules = []extensionsv1beta1.IngressRule{
+					{
+						Host: derivedHost,
+						IngressRuleValue: extensionsv1beta1.IngressRuleValue{
+							HTTP: ingress.Spec.Rules[0].HTTP.DeepCopy(),
+						},
+					},
+				}
+				r.setControllerReference(ing, ingress)
+				if err := applyIngress(ctx, ing); err != nil {
+					return err
+				}
 			}
 		}
 	}

@@ -18,7 +18,7 @@ MIRROR_IMAGE_TAG_FLAGS := --tag docker.io/octohelm/qservice-operator:$(VERSION)
 endif
 
 run:
-	AUTO_INGRESS_HOSTS=hw-dev.rktl.xyz \
+	INGRESS_GATEWAYS=auto-internal:hw-dev.rktl.xyz \
 	WATCH_NAMESPACE=default \
 	go run ./main.go
 

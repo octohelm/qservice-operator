@@ -18,8 +18,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
-	"os"
 	"strings"
 
 	"github.com/go-logr/logr"
@@ -80,36 +78,24 @@ func (r *ServiceReconciler) setControllerReference(obj metav1.Object, owner meta
 	obj.SetAnnotations(controllerutil.AnnotateControllerGeneration(obj.GetAnnotations(), owner.GetGeneration()))
 }
 
-var autoIngressHosts = func(v string) map[string]bool {
-	if v == "" {
-		return map[string]bool{}
-	}
-	m := map[string]bool{}
-	for _, h := range strings.Split(v, ",") {
-		m[h] = true
-	}
-	return m
-}(os.Getenv("AUTO_INGRESS_HOSTS"))
-
 func (r *ServiceReconciler) applyAutoIngress(ctx context.Context, svc *v1.Service) error {
-	if len(autoIngressHosts) == 0 {
+	if len(svc.Spec.Ports) == 0 {
 		return nil
 	}
 
-	if len(svc.Spec.Ports) == 0 {
+	host, ok := IngressGateways.AutoInternalIngress(svc.Name, svc.Namespace)
+	if !ok {
 		return nil
 	}
 
 	portName := svc.Spec.Ports[0].Name
 
 	if strings.HasPrefix(portName, "http") || strings.HasPrefix(portName, "grpc") {
-		for autoIngressHost := range autoIngressHosts {
-			ingress := serviceToIngress(svc, fmt.Sprintf("%s---%s.%s", svc.Name, svc.Namespace, autoIngressHost))
-			r.setControllerReference(ingress, svc)
+		ingress := serviceToIngress(svc, host)
+		r.setControllerReference(ingress, svc)
 
-			if err := applyIngress(ctx, ingress); err != nil {
-				return err
-			}
+		if err := applyIngress(ctx, ingress); err != nil {
+			return err
 		}
 	}
 
@@ -123,7 +109,7 @@ func serviceToIngress(svc *v1.Service, hostname string) *extensionsv1beta1.Ingre
 	ingress.Labels = svc.GetLabels()
 
 	ingress.Labels[LabelServiceName] = svc.Name
-	ingress.Labels[LabelBashHost] = BaseHost(hostname)
+	ingress.Labels[LabelGateway] = getGateway(hostname)
 
 	ingress.Annotations = map[string]string{
 		"kubernetes.io/ingress.class": "nginx",

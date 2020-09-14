@@ -121,6 +121,11 @@ func (r *QServiceReconciler) updateStatusFromIngresses(ctx context.Context, qsvc
 		for j := range item.Spec.Rules {
 			r := item.Spec.Rules[j]
 
+			d, ok := IngressGateways.IngressGatewayHost(r.Host)
+			if !ok || d != r.Host {
+				continue
+			}
+
 			for k := range r.HTTP.Paths {
 				p := r.HTTP.Paths[k]
 
