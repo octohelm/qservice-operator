@@ -5,6 +5,15 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.7.1](https://github.com/octohelm/qservice-operator/compare/v0.7.0...v0.7.1)
+
+### Bug Fixes
+
+* **fix** kubectl.kubernetes.io/restartedAt changed should patch ([671cfef](https://github.com/octohelm/qservice-operator/commit/671cfef2ec952bd633e028ab05e634f26d317ad9))
+* **fix** label gateway ([237c536](https://github.com/octohelm/qservice-operator/commit/237c536839b54dd957533dc944524043d8aae605))
+
+
+
 # [0.7.0](https://github.com/octohelm/qservice-operator/compare/v0.6.1...v0.7.0)
 
 ### Bug Fixes
