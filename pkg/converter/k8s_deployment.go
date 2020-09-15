@@ -3,6 +3,7 @@ package converter
 import (
 	"encoding/json"
 
+	"github.com/octohelm/qservice-operator/pkg/constants"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -11,7 +12,10 @@ func ToDeployment(s *QService) *appsv1.Deployment {
 	d := &appsv1.Deployment{}
 	d.Namespace = s.Namespace
 	d.Name = s.Name
+
 	d.Labels = cloneKV(s.Labels)
+	d.Labels["app"] = d.Name
+
 	d.Annotations = cloneKV(s.Annotations)
 
 	d.Spec.Selector = &metav1.LabelSelector{
@@ -22,7 +26,13 @@ func ToDeployment(s *QService) *appsv1.Deployment {
 
 	d.Spec.Replicas = s.Spec.Replicas
 	d.Spec.Template.Labels = cloneKV(d.Labels)
-	d.Spec.Template.Labels["app"] = d.Name
+	d.Spec.Template.Annotations = map[string]string{}
+
+	// sync restartedAt to trigger pod restarted
+	if restartedAt, ok := d.Annotations[constants.AnnotationRestartedAt]; ok {
+		d.Spec.Template.Annotations[constants.AnnotationRestartedAt] = restartedAt
+	}
+
 	d.Spec.Template.Spec = toPodSpec(s, s.Spec.Pod)
 
 	if s.Spec.Strategy != nil {

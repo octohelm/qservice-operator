@@ -7,14 +7,15 @@ GOBIN ?= ./bin
 GOOS ?= $(shell go env GOOS)
 GOARCH ?= $(shell go env GOARCH)
 
-HUB ?= hub-dev.demo.querycap.com/octohelm
-MIRROR ?= 1
+HUB ?= docker.io/octohelm
+MIRROR_HUB ?= hub-dev.demo.querycap.com/octohelm
 IMAGE_TAG ?= $(HUB)/qservice-operator:$(VERSION)
 
 MIRROR_IMAGE_TAG_FLAGS =
 
-ifeq ($(MIRROR),1)
-MIRROR_IMAGE_TAG_FLAGS := --tag docker.io/octohelm/qservice-operator:$(VERSION)
+ifeq ($(strip $(MIRROR_HUB)),)
+else
+MIRROR_IMAGE_TAG_FLAGS := --tag ${MIRROR_HUB}/qservice-operator:$(VERSION)
 endif
 
 run:
@@ -34,7 +35,7 @@ build.dockerx:
 		-f Dockerfile .
 
 build.dockerx.dev:
-	$(MAKE) build.dockerx VERSION=$(VERSION)-$(COMMIT_SHA) MIRROR=0
+	$(MAKE) build.dockerx VERSION=$(VERSION)-$(COMMIT_SHA) HUB=$(MIRROR_HUB) MIRROR_HUB=
 
 lint:
 	husky hook pre-commit

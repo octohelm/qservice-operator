@@ -4,30 +4,36 @@ import (
 	"context"
 	"strconv"
 
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
+	"github.com/octohelm/qservice-operator/pkg/constants"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 var SetControllerReference = controllerutil.SetControllerReference
 
-var keyControllerGeneration = "controller-generation"
-
 func IsControllerGenerationEqual(cur metav1.Object, next metav1.Object) bool {
-	return ControllerGeneration(cur) == ControllerGeneration(next)
+	annotations := cur.GetAnnotations()
+	nextAnnotations := next.GetAnnotations()
+
+	return isEqualProp(annotations, nextAnnotations, constants.AnnotationControllerGeneration) && isEqualProp(annotations, nextAnnotations, constants.AnnotationRestartedAt)
 }
 
-func ControllerGeneration(obj metav1.Object) string {
-	return obj.GetAnnotations()[keyControllerGeneration]
+func isEqualProp(cur map[string]string, next map[string]string, prop string) bool {
+	if cur == nil {
+		return false
+	}
+	if next == nil {
+		return false
+	}
+	return cur[prop] == next[prop]
 }
 
 func AnnotateControllerGeneration(annotations map[string]string, generation int64) map[string]string {
 	if annotations == nil {
 		annotations = map[string]string{}
 	}
-	annotations[keyControllerGeneration] = strconv.FormatInt(generation, 10)
+	annotations[constants.AnnotationControllerGeneration] = strconv.FormatInt(generation, 10)
 	return annotations
 }
 
