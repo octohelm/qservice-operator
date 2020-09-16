@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/go-courier/ptr"
+
 	"github.com/octohelm/qservice-operator/apis/serving/v1alpha1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -56,12 +58,7 @@ func (d *CustomResourceDefinition) ToCRD() *apiextensionsv1.CustomResourceDefini
 			Storage: true,
 			Schema: &apiextensionsv1.CustomResourceValidation{
 				OpenAPIV3Schema: &apiextensionsv1.JSONSchemaProps{
-					Type: "object",
-					Properties: map[string]apiextensionsv1.JSONSchemaProps{
-						"spec": {
-							Type: "object",
-						},
-					},
+					XPreserveUnknownFields: ptr.Bool(true),
 				},
 			},
 			Subresources: &apiextensionsv1.CustomResourceSubresources{
