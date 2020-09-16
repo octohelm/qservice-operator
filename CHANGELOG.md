@@ -5,6 +5,14 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.7.2](https://github.com/octohelm/qservice-operator/compare/v0.7.1...v0.7.2)
+
+### Bug Fixes
+
+* **fix** crd need schema ([01e12df](https://github.com/octohelm/qservice-operator/commit/01e12df8eba1406ed5d87ab4496e06967cababd7))
+
+
+
 # [0.7.1](https://github.com/octohelm/qservice-operator/compare/v0.7.0...v0.7.1)
 
 ### Bug Fixes
