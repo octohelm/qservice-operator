@@ -54,6 +54,16 @@ func (d *CustomResourceDefinition) ToCRD() *apiextensionsv1.CustomResourceDefini
 			Name:    d.GroupVersion.Version,
 			Served:  true,
 			Storage: true,
+			Schema: &apiextensionsv1.CustomResourceValidation{
+				OpenAPIV3Schema: &apiextensionsv1.JSONSchemaProps{
+					Type: "object",
+					Properties: map[string]apiextensionsv1.JSONSchemaProps{
+						"spec": {
+							Type: "object",
+						},
+					},
+				},
+			},
 			Subresources: &apiextensionsv1.CustomResourceSubresources{
 				Status: &apiextensionsv1.CustomResourceSubresourceStatus{},
 			},
