@@ -9,6 +9,3 @@ lint-staged:
   "*.go":
     - goimports -l -w
     - gofmt -l -w
-
-lint-commit:
-  email: "^(.+@gmail.com|.+@qq.com)$"
