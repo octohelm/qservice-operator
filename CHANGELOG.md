@@ -5,6 +5,14 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.8.0](https://github.com/octohelm/qservice-operator/compare/v0.7.3...v0.8.0)
+
+### Features
+
+* **feat** QIngress and QEgress ([f51b17e](https://github.com/octohelm/qservice-operator/commit/f51b17e3e5222a545d518aabbf857d1945eac0fc))
+
+
+
 # [0.7.3](https://github.com/octohelm/qservice-operator/compare/v0.7.2...v0.7.3)
 
 ### Bug Fixes
