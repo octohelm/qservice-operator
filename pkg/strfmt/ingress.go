@@ -1,37 +1,75 @@
 package strfmt
 
 import (
+	"bytes"
 	"fmt"
-	"net/url"
 	"strconv"
+	"strings"
 )
 
-func ParseIngress(s string) (*Ingress, error) {
-	if s == "" {
-		return nil, fmt.Errorf("invalid ingress rule")
+var InvalidIngressRule = fmt.Errorf("invalid ingress rule")
+
+// https://octohelm.tech,/v1$,/v2
+func ParseIngress(ingress string) (*Ingress, error) {
+	if ingress == "" {
+		return nil, InvalidIngressRule
 	}
 
-	u, err := url.Parse(s)
-	if err != nil {
-		return nil, err
+	origin := ingress
+	paths := ""
+
+	if i := strings.Index(ingress, ","); i != -1 {
+		origin = ingress[0:i]
+		paths = ingress[i+1:]
+	}
+
+	parts := strings.Split(origin, "://")
+	if len(parts) != 2 {
+		return nil, InvalidIngressRule
 	}
 
 	r := &Ingress{
-		Scheme: u.Scheme,
-		Host:   u.Hostname(),
-		Path:   u.Path,
+		Scheme: parts[0],
 	}
 
 	if r.Scheme == "" {
 		r.Scheme = "http"
 	}
 
-	p := u.Port()
-	if p == "" {
-		r.Port = 80
-	} else {
-		port, _ := strconv.ParseUint(p, 10, 16)
+	hostPort := strings.Split(parts[1], ":")
+
+	if len(hostPort) == 2 {
+		port, _ := strconv.ParseUint(hostPort[1], 10, 16)
 		r.Port = uint16(port)
+	}
+
+	if r.Port == 0 {
+		r.Port = 80
+	}
+
+	r.Host = hostPort[0]
+
+	if len(paths) != 0 {
+		parts := strings.Split(paths, ",")
+
+		for i := range parts {
+			p := parts[i]
+
+			if len(p) == 0 {
+				continue
+			}
+
+			if strings.HasSuffix(p, "$") {
+				r.Paths = append(r.Paths, PathRule{
+					Path:    p[0 : len(p)-1],
+					Exactly: true,
+				})
+			} else {
+				r.Paths = append(r.Paths, PathRule{
+					Path: p,
+				})
+			}
+		}
 	}
 
 	return r, nil
@@ -40,37 +78,60 @@ func ParseIngress(s string) (*Ingress, error) {
 type Ingress struct {
 	Scheme string
 	Host   string
-	Path   string
 	Port   uint16
+	Paths  []PathRule
+}
+
+type PathRule struct {
+	Path    string
+	Exactly bool
 }
 
 func (Ingress) OpenAPISchemaType() []string { return []string{"string"} }
 func (Ingress) OpenAPISchemaFormat() string { return "ingress" }
 
-func (r Ingress) String() string {
-	if r.Scheme == "" {
-		r.Scheme = "http"
-	}
-	if r.Port == 0 {
-		r.Port = 80
+func (ingress Ingress) String() string {
+	ret := bytes.NewBuffer(nil)
+
+	defaultPort := 0
+
+	if ingress.Scheme == "" {
+		ret.WriteString("http://")
+		defaultPort = 80
+	} else {
+		ret.WriteString(ingress.Scheme)
+		ret.WriteString("://")
 	}
 
-	return (&url.URL{
-		Scheme: r.Scheme,
-		Host:   r.Host + ":" + strconv.FormatUint(uint64(r.Port), 10),
-		Path:   r.Path,
-	}).String()
+	ret.WriteString(ingress.Host)
+
+	if ingress.Port == 0 {
+		_, _ = fmt.Fprintf(ret, ":%d", defaultPort)
+	} else {
+		_, _ = fmt.Fprintf(ret, ":%d", ingress.Port)
+	}
+
+	for _, path := range ingress.Paths {
+		ret.WriteString(",")
+		ret.WriteString(path.Path)
+
+		if path.Exactly {
+			ret.WriteString("$")
+		}
+	}
+
+	return ret.String()
 }
 
-func (r Ingress) MarshalText() ([]byte, error) {
-	return []byte(r.String()), nil
+func (ingress Ingress) MarshalText() ([]byte, error) {
+	return []byte(ingress.String()), nil
 }
 
-func (r *Ingress) UnmarshalText(data []byte) error {
+func (ingress *Ingress) UnmarshalText(data []byte) error {
 	ir, err := ParseIngress(string(data))
 	if err != nil {
 		return err
 	}
-	*r = *ir
+	*ingress = *ir
 	return nil
 }

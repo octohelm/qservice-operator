@@ -30,8 +30,15 @@ type QService struct {
 type QServiceStatus struct {
 	DeploymentStage         string                      `json:"deploymentStage,omitempty"`
 	DeploymentComments      string                      `json:"deploymentComments,omitempty"`
+	ServiceConditions       []QServiceCondition         `json:"serviceConditions"`
 	Ingresses               map[string][]strfmt.Ingress `json:"ingresses,omitempty"`
 	appsv1.DeploymentStatus `json:",inline"`
+}
+
+type QServiceCondition struct {
+	Type   string             `json:"type"`
+	Status v1.ConditionStatus `json:"status"`
+	Reason string             `json:"reason,omitempty"`
 }
 
 type QServiceSpec struct {

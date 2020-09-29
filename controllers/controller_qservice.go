@@ -8,17 +8,14 @@ import (
 	"reflect"
 	"time"
 
-	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
-	"github.com/octohelm/qservice-operator/pkg/controllerutil"
-	"github.com/pkg/errors"
-
 	"github.com/go-logr/logr"
 	servingv1alpha1 "github.com/octohelm/qservice-operator/apis/serving/v1alpha1"
+	"github.com/octohelm/qservice-operator/pkg/controllerutil"
 	"github.com/octohelm/qservice-operator/pkg/converter"
 	"github.com/octohelm/qservice-operator/pkg/strfmt"
 	appsv1 "k8s.io/api/apps/v1"
@@ -45,9 +42,9 @@ func (r *QServiceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&corev1.Secret{}).
 		Owns(&corev1.Service{}).
 		Owns(&appsv1.Deployment{}).
-		Watches(&source.Kind{Type: &extensionsv1beta1.Ingress{}}, &handler.EnqueueRequestsFromMapFunc{
+		Watches(&source.Kind{Type: &servingv1alpha1.QIngress{}}, &handler.EnqueueRequestsFromMapFunc{
 			ToRequests: handler.ToRequestsFunc(func(object handler.MapObject) []reconcile.Request {
-				// to trigger sync ingresses as QService status
+				// to trigger sync qingresses as QService status
 				if labelSet := object.Meta.GetLabels(); labelSet != nil {
 					if app, ok := labelSet[LabelServiceName]; ok {
 						return []reconcile.Request{{NamespacedName: types.NamespacedName{
@@ -86,7 +83,7 @@ func (r *QServiceReconciler) Reconcile(request reconcile.Request) (reconcile.Res
 	}
 
 	_ = r.updateStatusFromDeployment(ctx, qsvc)
-	_ = r.updateStatusFromIngresses(ctx, qsvc)
+	_ = r.updateStatusFromQIngresses(ctx, qsvc)
 
 	if err := r.Client.Status().Update(ctx, qsvc); err != nil {
 		log.Error(err, "update status failed")
@@ -96,8 +93,8 @@ func (r *QServiceReconciler) Reconcile(request reconcile.Request) (reconcile.Res
 	return reconcile.Result{}, nil
 }
 
-func (r *QServiceReconciler) updateStatusFromIngresses(ctx context.Context, qsvc *servingv1alpha1.QService) error {
-	list := &extensionsv1beta1.IngressList{}
+func (r *QServiceReconciler) updateStatusFromQIngresses(ctx context.Context, qsvc *servingv1alpha1.QService) error {
+	list := &servingv1alpha1.QIngressList{}
 
 	s, _ := labels.NewRequirement(LabelServiceName, selection.Equals, []string{qsvc.Name})
 
@@ -118,27 +115,12 @@ func (r *QServiceReconciler) updateStatusFromIngresses(ctx context.Context, qsvc
 	for i := range list.Items {
 		item := list.Items[i]
 
-		for j := range item.Spec.Rules {
-			r := item.Spec.Rules[j]
-
-			d, ok := IngressGateways.IngressGatewayHost(r.Host)
-			if !ok || d != r.Host {
-				continue
-			}
-
-			for k := range r.HTTP.Paths {
-				p := r.HTTP.Paths[k]
-
-				i := strfmt.Ingress{
-					Scheme: "http",
-					Host:   r.Host,
-					Path:   p.Path,
-					Port:   uint16(p.Backend.ServicePort.IntValue()),
-				}
-
-				qsvc.Status.Ingresses[item.Name] = append(qsvc.Status.Ingresses[item.Name], i)
-			}
+		host, ok := IngressGateways.IngressGatewayHost(item.Spec.Ingress.Host)
+		if ok {
+			item.Spec.Ingress.Host = host
 		}
+
+		qsvc.Status.Ingresses[item.Name] = append(qsvc.Status.Ingresses[item.Name], item.Spec.Ingress)
 	}
 
 	return nil
@@ -250,25 +232,38 @@ func (r *QServiceReconciler) applyQService(ctx context.Context, qsvc *servingv1a
 
 	ctx = controllerutil.ContextWithControllerClient(ctx, r.Client)
 
-	return with(
-		r.applyImagePullSecret,
-		r.applyDeployment,
-		r.applyService,
-	)(ctx, qsvc)
-}
+	qsvc.Status.ServiceConditions = []servingv1alpha1.QServiceCondition{}
 
-type process = func(ctx context.Context, qsvc *servingv1alpha1.QService) error
-
-func with(processes ...process) process {
-	return func(ctx context.Context, qsvc *servingv1alpha1.QService) error {
-		for i := range processes {
-			p := processes[i]
-			if err := p(ctx, qsvc); err != nil {
-				return errors.Wrapf(err, "step %d", i)
-			}
+	appendServiceConditions := func(tpe string, err error) {
+		condition := servingv1alpha1.QServiceCondition{Type: tpe}
+		if err == nil {
+			condition.Status = corev1.ConditionTrue
+		} else {
+			condition.Status = corev1.ConditionFalse
+			condition.Reason = err.Error()
 		}
-		return nil
+		qsvc.Status.ServiceConditions = append(qsvc.Status.ServiceConditions, condition)
 	}
+
+	if err := r.applyImagePullSecret(ctx, qsvc); err != nil {
+		appendServiceConditions("ImagePullSecret", err)
+		return err
+	}
+	appendServiceConditions("ImagePullSecret", nil)
+
+	if err := r.applyDeployment(ctx, qsvc); err != nil {
+		appendServiceConditions("Deployment", err)
+		return err
+	}
+	appendServiceConditions("Deployment", nil)
+
+	if err := r.applyService(ctx, qsvc); err != nil {
+		appendServiceConditions("Service", err)
+		return err
+	}
+	appendServiceConditions("Service", nil)
+
+	return nil
 }
 
 func (r *QServiceReconciler) applyService(ctx context.Context, qsvc *servingv1alpha1.QService) error {

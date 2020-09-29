@@ -2,10 +2,12 @@ PKG = $(shell cat go.mod | grep "^module " | sed -e "s/module //g")
 VERSION = $(shell cat .version)
 COMMIT_SHA ?= $(shell git rev-parse --short HEAD)-devel
 
-GOBUILD = CGO_ENABLED=0 go build -ldflags "-X $(PKG)/version.Version=$(VERSION)+sha.$(COMMIT_SHA)"
+GOBUILD = CGO_ENABLED=0 STATIC=0 go build -ldflags "-extldflags -static -s -w -X $(PKG)/version.Version=$(VERSION)+sha.$(COMMIT_SHA)"
 GOBIN ?= ./bin
 GOOS ?= $(shell go env GOOS)
 GOARCH ?= $(shell go env GOARCH)
+
+PLATFORM = linux/amd64,linux/arm64
 
 HUB ?= docker.io/octohelm
 MIRROR_HUB ?= hub-dev.demo.querycap.com/octohelm
@@ -15,7 +17,7 @@ MIRROR_IMAGE_TAG_FLAGS =
 
 ifeq ($(strip $(MIRROR_HUB)),)
 else
-MIRROR_IMAGE_TAG_FLAGS := --tag ${MIRROR_HUB}/qservice-operator:$(VERSION)
+MIRROR_IMAGE_TAG_FLAGS := --tag $(MIRROR_HUB)/qservice-operator:$(VERSION)
 endif
 
 run:
@@ -29,13 +31,13 @@ build:
 build.dockerx:
 	docker buildx build \
 		--push \
-		--build-arg=GOPROXY=${GOPROXY} \
-		--platform=linux/amd64,linux/arm64 \
-		--tag ${IMAGE_TAG} ${MIRROR_IMAGE_TAG_FLAGS}\
+		--build-arg=GOPROXY=$(GOPROXY) \
+		--platform=$(PLATFORM) \
+		--tag $(IMAGE_TAG) $(MIRROR_IMAGE_TAG_FLAGS)\
 		-f Dockerfile .
 
 build.dockerx.dev:
-	$(MAKE) build.dockerx VERSION=$(VERSION)-$(COMMIT_SHA) HUB=$(MIRROR_HUB) MIRROR_HUB=
+	$(MAKE) build.dockerx VERSION=$(VERSION)-$(COMMIT_SHA) PLATFORM=linux/arm64 HUB=$(MIRROR_HUB) MIRROR_HUB=
 
 lint:
 	husky hook pre-commit

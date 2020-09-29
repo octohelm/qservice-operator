@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 
+	"github.com/octohelm/qservice-operator/apis/serving/v1alpha1"
 	"github.com/octohelm/qservice-operator/pkg/apiutil"
 	"github.com/octohelm/qservice-operator/pkg/controllerutil"
 	istioneteworkingv1alpha3 "istio.io/client-go/pkg/apis/networking/v1alpha3"
@@ -108,6 +109,46 @@ func applyVirtualService(ctx context.Context, vs *istioneteworkingv1alpha3.Virtu
 
 	if !controllerutil.IsControllerGenerationEqual(current, vs) {
 		return c.Patch(ctx, vs, apiutil.JSONPatch(types.MergePatchType))
+	}
+
+	return nil
+}
+
+func applyServiceEntry(ctx context.Context, se *istioneteworkingv1alpha3.ServiceEntry) error {
+	c := controllerutil.ControllerClientFromContext(ctx)
+
+	current := &istioneteworkingv1alpha3.ServiceEntry{}
+
+	err := c.Get(ctx, types.NamespacedName{Name: se.Name, Namespace: se.Namespace}, current)
+	if err != nil {
+		if !apierrors.IsNotFound(err) {
+			return err
+		}
+		return c.Create(ctx, se)
+	}
+
+	if !controllerutil.IsControllerGenerationEqual(current, se) {
+		return c.Patch(ctx, se, apiutil.JSONPatch(types.MergePatchType))
+	}
+
+	return nil
+}
+
+func applyQIngress(ctx context.Context, qingress *v1alpha1.QIngress) error {
+	c := controllerutil.ControllerClientFromContext(ctx)
+
+	current := &v1alpha1.QIngress{}
+
+	err := c.Get(ctx, types.NamespacedName{Name: qingress.Name, Namespace: qingress.Namespace}, current)
+	if err != nil {
+		if !apierrors.IsNotFound(err) {
+			return err
+		}
+		return c.Create(ctx, qingress)
+	}
+
+	if !controllerutil.IsControllerGenerationEqual(current, qingress) {
+		return c.Patch(ctx, qingress, apiutil.JSONPatch(types.StrategicMergePatchType))
 	}
 
 	return nil

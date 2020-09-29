@@ -20,6 +20,8 @@ import (
 	"context"
 	"strings"
 
+	"github.com/octohelm/qservice-operator/apis/serving/v1alpha1"
+
 	"github.com/go-logr/logr"
 	"github.com/octohelm/qservice-operator/pkg/controllerutil"
 	"github.com/octohelm/qservice-operator/pkg/converter"
@@ -45,7 +47,7 @@ type ServiceReconciler struct {
 func (r *ServiceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&corev1.Service{}).
-		Owns(&extensionsv1beta1.Ingress{}).
+		Owns(&v1alpha1.QIngress{}).
 		Complete(r)
 }
 
@@ -63,7 +65,7 @@ func (r *ServiceReconciler) Reconcile(request reconcile.Request) (reconcile.Resu
 
 	ctx = controllerutil.ContextWithControllerClient(ctx, r.Client)
 
-	if err := r.applyAutoIngress(ctx, s); err != nil {
+	if err := r.applyAutoQIngress(ctx, s); err != nil {
 		log.Error(err, "apply ingress failed")
 		return reconcile.Result{}, err
 	}
@@ -78,23 +80,20 @@ func (r *ServiceReconciler) setControllerReference(obj metav1.Object, owner meta
 	obj.SetAnnotations(controllerutil.AnnotateControllerGeneration(obj.GetAnnotations(), owner.GetGeneration()))
 }
 
-func (r *ServiceReconciler) applyAutoIngress(ctx context.Context, svc *v1.Service) error {
+func (r *ServiceReconciler) applyAutoQIngress(ctx context.Context, svc *v1.Service) error {
 	if len(svc.Spec.Ports) == 0 {
 		return nil
 	}
 
-	host, ok := IngressGateways.AutoInternalIngress(svc.Name, svc.Namespace)
-	if !ok {
-		return nil
-	}
+	host := controllerutil.ServiceIngressHost(svc.Name, svc.Namespace, "auto-internal")
 
 	portName := svc.Spec.Ports[0].Name
 
 	if strings.HasPrefix(portName, "http") || strings.HasPrefix(portName, "grpc") {
-		ingress := serviceToIngress(svc, host)
+		ingress := serviceToQIngress(svc, host)
 		r.setControllerReference(ingress, svc)
 
-		if err := applyIngress(ctx, ingress); err != nil {
+		if err := applyQIngress(ctx, ingress); err != nil {
 			return err
 		}
 	}
@@ -102,18 +101,13 @@ func (r *ServiceReconciler) applyAutoIngress(ctx context.Context, svc *v1.Servic
 	return nil
 }
 
-func serviceToIngress(svc *v1.Service, hostname string) *extensionsv1beta1.Ingress {
-	ingress := &extensionsv1beta1.Ingress{}
+func serviceToQIngress(svc *v1.Service, hostname string) *v1alpha1.QIngress {
+	ingress := &v1alpha1.QIngress{}
 	ingress.Namespace = svc.Namespace
 	ingress.Name = svc.Name + "-" + converter.HashID(hostname)
 	ingress.Labels = svc.GetLabels()
-
 	ingress.Labels[LabelServiceName] = svc.Name
 	ingress.Labels[LabelGateway] = getGateway(hostname)
-
-	ingress.Annotations = map[string]string{
-		"kubernetes.io/ingress.class": "nginx",
-	}
 
 	port := uint16(80)
 
@@ -121,21 +115,12 @@ func serviceToIngress(svc *v1.Service, hostname string) *extensionsv1beta1.Ingre
 		port = uint16(svc.Spec.Ports[0].Port)
 	}
 
-	ingress.Spec.Rules = append(ingress.Spec.Rules, extensionsv1beta1.IngressRule{
-		Host: hostname,
-		IngressRuleValue: extensionsv1beta1.IngressRuleValue{
-			HTTP: &extensionsv1beta1.HTTPIngressRuleValue{
-				Paths: []extensionsv1beta1.HTTPIngressPath{
-					{
-						Backend: extensionsv1beta1.IngressBackend{
-							ServiceName: svc.Name,
-							ServicePort: intstr.FromInt(int(port)),
-						},
-					},
-				},
-			},
-		},
-	})
+	ingress.Spec.Ingress.Host = hostname
+	ingress.Spec.Ingress.Port = port
+	ingress.Spec.Backend = extensionsv1beta1.IngressBackend{
+		ServiceName: svc.Name,
+		ServicePort: intstr.FromInt(int(port)),
+	}
 
 	return ingress
 }

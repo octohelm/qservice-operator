@@ -2,8 +2,9 @@ package main
 
 import (
 	"flag"
-	"github.com/octohelm/qservice-operator/pkg/controllerutil"
 	"os"
+
+	"github.com/octohelm/qservice-operator/pkg/controllerutil"
 
 	"github.com/octohelm/qservice-operator/apis/serving"
 	servingapis "github.com/octohelm/qservice-operator/apis/serving/v1alpha1"
@@ -11,7 +12,6 @@ import (
 	"github.com/octohelm/qservice-operator/version"
 	"github.com/pkg/errors"
 	istioapis "istio.io/client-go/pkg/apis/networking/v1alpha3"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -22,10 +22,6 @@ import (
 
 var (
 	scheme = runtime.NewScheme()
-
-	crds = []*apiextensionsv1.CustomResourceDefinition{
-		serving.QServiceCustomResourceDefinition(),
-	}
 )
 
 func init() {
@@ -37,7 +33,7 @@ func init() {
 func start(ctrlOpt ctrl.Options) error {
 	restConfig := ctrl.GetConfigOrDie()
 
-	if err := controllerutil.ApplyCRDs(restConfig, crds...); err != nil {
+	if err := controllerutil.ApplyCRDs(restConfig, serving.CRDs...); err != nil {
 		return errors.Wrap(err, "unable to create crds")
 	} else {
 		ctrl.Log.WithName("crd").Info("crds created")

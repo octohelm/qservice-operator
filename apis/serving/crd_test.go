@@ -7,7 +7,7 @@ import (
 )
 
 func TestCustomResourceDefinition(t *testing.T) {
-	data, _ := yaml.Marshal(QServiceCustomResourceDefinition())
+	data, _ := yaml.Marshal(qserviceCustomResourceDefinition())
 
 	t.Log(string(data))
 }

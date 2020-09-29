@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
+
 	"github.com/octohelm/qservice-operator/pkg/converter"
 	"istio.io/api/networking/v1alpha3"
 	istioneteworkingv1alpha3 "istio.io/client-go/pkg/apis/networking/v1alpha3"
@@ -13,7 +15,6 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
-	"strings"
 )
 
 func ApplyGateways(c *rest.Config, crds ...*istioneteworkingv1alpha3.Gateway) error {
@@ -130,14 +131,6 @@ func (s IngressGateways) IngressGatewayHost(hostname string) (string, bool) {
 	return "", false
 }
 
-func (s IngressGateways) AutoInternalIngress(serviceName string, namespace string) (string, bool) {
-	h, ok := s["auto-internal"]
-	if ok {
-		return host(serviceName, namespace, h), true
-	}
-	return "", false
-}
-
-func host(serviceName string, namespace string, gateway string) string {
+func ServiceIngressHost(serviceName string, namespace string, gateway string) string {
 	return fmt.Sprintf("%s---%s.%s", serviceName, namespace, gateway)
 }

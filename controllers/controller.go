@@ -23,7 +23,12 @@ func SetupWithManager(mgr ctrl.Manager) error {
 			Log:    mgr.GetLogger().WithName("controllers").WithName("Service"),
 			Scheme: mgr.GetScheme(),
 		},
-		&IngressReconciler{
+		&QIngressReconciler{
+			Client: mgr.GetClient(),
+			Log:    mgr.GetLogger().WithName("controllers").WithName("Ingress"),
+			Scheme: mgr.GetScheme(),
+		},
+		&QEgressReconciler{
 			Client: mgr.GetClient(),
 			Log:    mgr.GetLogger().WithName("controllers").WithName("Ingress"),
 			Scheme: mgr.GetScheme(),

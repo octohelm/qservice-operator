@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: qservice-operator
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       name: qservice-operator
@@ -17,10 +17,10 @@ spec:
       serviceAccountName: qservice-operator
       containers:
         - name: qservice-operator
-          image: octohelm/qservice-operator:0.5.4
+          image: octohelm/qservice-operator
           args:
             - --enable-leader-election
           imagePullPolicy: Always
           env:
             - name: INGRESS_GATEWAYS
-              value: "auto-internal:hw-dev.rktl.xyz"
+              value: "auto-internal:hw-dev.rktl.xyz,external:hw-dev.querycap.com"
