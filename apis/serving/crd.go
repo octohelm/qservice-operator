@@ -26,6 +26,7 @@ func qingressCustomResourceDefinition() *apiextensionsv1.CustomResourceDefinitio
 		GroupVersion: v1alpha1.SchemeGroupVersion,
 		KindType:     &v1alpha1.QIngress{},
 		ListKindType: &v1alpha1.QIngressList{},
+		Plural:       "qingresses",
 		ShortNames:   []string{"qing"},
 	})
 }
@@ -35,6 +36,7 @@ func qegressCustomResourceDefinition() *apiextensionsv1.CustomResourceDefinition
 		GroupVersion: v1alpha1.SchemeGroupVersion,
 		KindType:     &v1alpha1.QEgress{},
 		ListKindType: &v1alpha1.QEgressList{},
+		Plural:       "qegresses",
 		ShortNames:   []string{"qeg"},
 	})
 }
