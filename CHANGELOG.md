@@ -5,6 +5,14 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.8.1](https://github.com/octohelm/qservice-operator/compare/v0.8.0...v0.8.1)
+
+### Bug Fixes
+
+* **fix** crd plural -es ([68385db](https://github.com/octohelm/qservice-operator/commit/68385db5c3594a1329f6de2828479debcb492beb))
+
+
+
 # [0.8.0](https://github.com/octohelm/qservice-operator/compare/v0.7.3...v0.8.0)
 
 ### Features
