@@ -1,24 +1,17 @@
 PKG = $(shell cat go.mod | grep "^module " | sed -e "s/module //g")
 VERSION = $(shell cat .version)
-COMMIT_SHA ?= $(shell git rev-parse --short HEAD)-devel
+COMMIT_SHA ?= $(shell git rev-parse --short HEAD)
 
 GOBUILD = CGO_ENABLED=0 STATIC=0 go build -ldflags "-extldflags -static -s -w -X $(PKG)/version.Version=$(VERSION)+sha.$(COMMIT_SHA)"
 GOBIN ?= ./bin
 GOOS ?= $(shell go env GOOS)
 GOARCH ?= $(shell go env GOARCH)
+NAME ?= qservice-operator
+TAG ?= $(VERSION)
 
-PLATFORM = linux/amd64,linux/arm64
+PLATFORM ?= linux/amd64,linux/arm64
 
 HUB ?= docker.io/octohelm
-MIRROR_HUB ?= hub-dev.demo.querycap.com/octohelm
-IMAGE_TAG ?= $(HUB)/qservice-operator:$(VERSION)
-
-MIRROR_IMAGE_TAG_FLAGS =
-
-ifeq ($(strip $(MIRROR_HUB)),)
-else
-MIRROR_IMAGE_TAG_FLAGS := --tag $(MIRROR_HUB)/qservice-operator:$(VERSION)
-endif
 
 run:
 	INGRESS_GATEWAYS=auto-internal:hw-dev.rktl.xyz \
@@ -26,18 +19,19 @@ run:
 	go run ./main.go
 
 build:
-	$(GOBUILD) -o $(GOBIN)/qservice-operator ./main.go
+	$(GOBUILD) -o $(GOBIN)/$(NAME) ./main.go
+
+prepare:
+	@echo ::set-output name=image::$(NAME):$(TAG)
+	@echo ::set-output name=build_args::VERSION=$(VERSION)
 
 build.dockerx:
 	docker buildx build \
 		--push \
 		--build-arg=GOPROXY=$(GOPROXY) \
 		--platform=$(PLATFORM) \
-		--tag $(IMAGE_TAG) $(MIRROR_IMAGE_TAG_FLAGS)\
+		--tag $(HUB)/$(NAME):$(TAG) \
 		-f Dockerfile .
-
-build.dockerx.dev:
-	$(MAKE) build.dockerx VERSION=$(VERSION)-$(COMMIT_SHA) PLATFORM=linux/arm64 HUB=$(MIRROR_HUB) MIRROR_HUB=
 
 lint:
 	husky hook pre-commit

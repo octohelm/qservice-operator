@@ -21,8 +21,10 @@ type CustomResourceDefinition struct {
 func ToCRD(d *CustomResourceDefinition) *apiextensionsv1.CustomResourceDefinition {
 	crd := &apiextensionsv1.CustomResourceDefinition{}
 
+	kindType := reflect.Indirect(reflect.ValueOf(d.KindType)).Type()
+
 	crdNames := apiextensionsv1.CustomResourceDefinitionNames{
-		Kind:       reflect.Indirect(reflect.ValueOf(d.KindType)).Type().Name(),
+		Kind:       kindType.Name(),
 		ListKind:   reflect.Indirect(reflect.ValueOf(d.ListKindType)).Type().Name(),
 		ShortNames: d.ShortNames,
 	}
@@ -39,6 +41,10 @@ func ToCRD(d *CustomResourceDefinition) *apiextensionsv1.CustomResourceDefinitio
 	crd.Spec.Group = d.GroupVersion.Group
 	crd.Spec.Scope = apiextensionsv1.NamespaceScoped
 
+	openapiSchema := &apiextensionsv1.JSONSchemaProps{
+		XPreserveUnknownFields: ptr.Bool(true),
+	}
+
 	crd.Spec.Names = crdNames
 	crd.Spec.Versions = []apiextensionsv1.CustomResourceDefinitionVersion{
 		{
@@ -46,9 +52,7 @@ func ToCRD(d *CustomResourceDefinition) *apiextensionsv1.CustomResourceDefinitio
 			Served:  true,
 			Storage: true,
 			Schema: &apiextensionsv1.CustomResourceValidation{
-				OpenAPIV3Schema: &apiextensionsv1.JSONSchemaProps{
-					XPreserveUnknownFields: ptr.Bool(true),
-				},
+				OpenAPIV3Schema: openapiSchema,
 			},
 			Subresources: &apiextensionsv1.CustomResourceSubresources{
 				Status: &apiextensionsv1.CustomResourceSubresourceStatus{},

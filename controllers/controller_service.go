@@ -106,6 +106,9 @@ func serviceToQIngress(svc *v1.Service, hostname string) *v1alpha1.QIngress {
 	ingress.Namespace = svc.Namespace
 	ingress.Name = svc.Name + "-" + converter.HashID(hostname)
 	ingress.Labels = svc.GetLabels()
+	if ingress.Labels == nil {
+		ingress.Labels = map[string]string{}
+	}
 	ingress.Labels[LabelServiceName] = svc.Name
 	ingress.Labels[LabelGateway] = getGateway(hostname)
 

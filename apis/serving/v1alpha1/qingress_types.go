@@ -27,7 +27,9 @@ type QIngress struct {
 }
 
 type QIngressSpec struct {
-	Ingress strfmt.Ingress                   `json:"ingress"`
+	// ingress rule
+	Ingress strfmt.Ingress `json:"ingress"`
+	// backend service
 	Backend extensionsv1beta1.IngressBackend `json:"backend"`
 }
 
