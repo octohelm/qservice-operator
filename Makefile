@@ -19,7 +19,7 @@ run:
 	go run ./main.go
 
 build:
-	$(GOBUILD) -o $(GOBIN)/$(NAME) ./main.go
+	$(GOBUILD) -o $(GOBIN)/$(NAME)-$(GOOS)-$(GOARCH) ./main.go
 
 prepare:
 	@echo ::set-output name=image::$(NAME):$(TAG)
@@ -28,10 +28,10 @@ prepare:
 build.dockerx:
 	docker buildx build \
 		--push \
-		--build-arg=GOPROXY=$(GOPROXY) \
+		--build-arg=GOPROXY=${GOPROXY} \
 		--platform=$(PLATFORM) \
 		--tag $(HUB)/$(NAME):$(TAG) \
-		-f Dockerfile .
+		-f hack/Dockerfile .
 
 lint:
 	husky hook pre-commit
