@@ -5,7 +5,16 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.8.3](https://github.com/octohelm/qservice-operator/compare/v0.8.2...v0.8.3)
+
+### Bug Fixes
+
+* **fix** auto label role for deployment by service name ([15d4dfb](https://github.com/octohelm/qservice-operator/commit/15d4dfb5dbd789990bbc3d2f8dd245e302962686))
+
+
+
 # [0.8.2](https://github.com/octohelm/qservice-operator/compare/v0.8.1...v0.8.2)
+
 
 
 # [0.8.1](https://github.com/octohelm/qservice-operator/compare/v0.8.0...v0.8.1)
