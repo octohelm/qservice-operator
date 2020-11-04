@@ -2,6 +2,7 @@ package converter
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/octohelm/qservice-operator/pkg/constants"
 	appsv1 "k8s.io/api/apps/v1"
@@ -15,6 +16,15 @@ func ToDeployment(s *QService) *appsv1.Deployment {
 
 	d.Labels = cloneKV(s.Labels)
 	d.Labels["app"] = d.Name
+
+	if _, ok := d.Labels["role"]; !ok {
+		if strings.HasPrefix(d.Name, "srv-") || strings.HasPrefix(d.Name, "svc-") {
+			d.Labels["role"] = "svc"
+		}
+		if strings.HasPrefix(s.Name, "web-") {
+			d.Labels["role"] = "web"
+		}
+	}
 
 	d.Annotations = cloneKV(s.Annotations)
 
