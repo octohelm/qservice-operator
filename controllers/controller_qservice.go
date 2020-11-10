@@ -73,21 +73,22 @@ func (r *QServiceReconciler) Reconcile(request reconcile.Request) (reconcile.Res
 		if apierrors.IsNotFound(err) {
 			return reconcile.Result{}, nil
 		}
-		log.Error(err, "Failed to get QService")
+		log.Error(err, "failed to get QService")
 		return reconcile.Result{}, err
 	}
 
 	if err := r.applyQService(ctx, qsvc); err != nil {
 		log.Error(err, "apply failed")
-		return reconcile.Result{}, err
+
+		qsvc.Status.DeploymentStage = "FAILED"
+		qsvc.Status.DeploymentComments = err.Error()
+	} else {
+		_ = r.updateStatusFromDeployment(ctx, qsvc)
+		_ = r.updateStatusFromQIngresses(ctx, qsvc)
 	}
 
-	_ = r.updateStatusFromDeployment(ctx, qsvc)
-	_ = r.updateStatusFromQIngresses(ctx, qsvc)
-
 	if err := r.Client.Status().Update(ctx, qsvc); err != nil {
-		log.Error(err, "update status failed")
-		return reconcile.Result{}, nil
+		return reconcile.Result{}, err
 	}
 
 	return reconcile.Result{}, nil
