@@ -5,6 +5,14 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.8.4](https://github.com/octohelm/qservice-operator/compare/v0.8.3...v0.8.4)
+
+### Bug Fixes
+
+* **fix(controller/qservice):** apply failed should sync deployment stage and comments ([abed5af](https://github.com/octohelm/qservice-operator/commit/abed5afa16d4c0ed829fce75cbeb4e81396b22b8))
+
+
+
 # [0.8.3](https://github.com/octohelm/qservice-operator/compare/v0.8.2...v0.8.3)
 
 ### Bug Fixes
