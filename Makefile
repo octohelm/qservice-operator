@@ -37,15 +37,6 @@ lint:
 	husky hook pre-commit
 	husky hook commit-msg
 
-apply-crd:
-	kubectl apply -f deploy/crds/serving.octohelm.tech_qservices_crd.yaml
-
-apply:
-	kubectl apply -k ./deploy
-
-delete:
-	kubectl delete -k ./deploy
-
 apply.example:
 	kubectl apply --filename ./deploy/examples/service.yaml
 
