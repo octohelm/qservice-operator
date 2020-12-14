@@ -42,28 +42,24 @@ func (r *QServiceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&corev1.Secret{}).
 		Owns(&corev1.Service{}).
 		Owns(&appsv1.Deployment{}).
-		Watches(&source.Kind{Type: &servingv1alpha1.QIngress{}}, &handler.EnqueueRequestsFromMapFunc{
-			ToRequests: handler.ToRequestsFunc(func(object handler.MapObject) []reconcile.Request {
-				// to trigger sync qingresses as QService status
-				if labelSet := object.Meta.GetLabels(); labelSet != nil {
-					if app, ok := labelSet[LabelServiceName]; ok {
-						return []reconcile.Request{{NamespacedName: types.NamespacedName{
-							Name:      app,
-							Namespace: object.Meta.GetNamespace(),
-						}}}
-					}
+		Watches(&source.Kind{Type: &servingv1alpha1.QIngress{}}, handler.EnqueueRequestsFromMapFunc(func(object client.Object) []reconcile.Request {
+			// to trigger sync qingresses as QService status
+			if labelSet := object.GetLabels(); labelSet != nil {
+				if app, ok := labelSet[LabelServiceName]; ok {
+					return []reconcile.Request{{NamespacedName: types.NamespacedName{
+						Name:      app,
+						Namespace: object.GetNamespace(),
+					}}}
 				}
-				return []reconcile.Request{}
-			}),
-		}).
+			}
+			return []reconcile.Request{}
+		})).
 		Complete(r)
 }
 
 // Reconcile reads that state of the cluster for a QService object and makes changes based on the state read
 // and what is in the QService.Spec
-func (r *QServiceReconciler) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	ctx := context.Background()
-
+func (r *QServiceReconciler) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
 	log := r.Log.WithValues("namespace", request.Namespace, "name", request.Name)
 
 	qsvc := &servingv1alpha1.QService{}

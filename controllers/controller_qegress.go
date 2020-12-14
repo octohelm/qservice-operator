@@ -35,9 +35,7 @@ func (r *QEgressReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func (r *QEgressReconciler) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	ctx := context.Background()
-
+func (r *QEgressReconciler) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
 	log := r.Log.WithValues("namespace", request.Namespace, "name", request.Name)
 
 	qegress := &v1alpha1.QEgress{}

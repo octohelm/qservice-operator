@@ -52,9 +52,7 @@ func (r *QIngressReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func (r *QIngressReconciler) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	ctx := context.Background()
-
+func (r *QIngressReconciler) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
 	log := r.Log.WithValues("namespace", request.Namespace, "name", request.Name)
 
 	qingress := &v1alpha1.QIngress{}
