@@ -26,7 +26,6 @@ require (
 	golang.org/x/sys v0.0.0-20201207223542-d4d67f95c62d // indirect
 	golang.org/x/term v0.0.0-20201207232118-ee85cb95a76b // indirect
 	golang.org/x/time v0.0.0-20201208040808-7e3f01d25324 // indirect
-	gomodules.xyz/jsonpatch/v2 v2.1.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	istio.io/api v0.0.0-20201125194658-3cee6a1d3ab4
 	istio.io/client-go v1.8.1
@@ -36,7 +35,7 @@ require (
 	k8s.io/apimachinery v0.20.0
 	k8s.io/client-go v1.5.1
 	mvdan.cc/sh/v3 v3.2.1
-	sigs.k8s.io/controller-runtime v0.6.4
+	sigs.k8s.io/controller-runtime v0.7.0
 )
 
 replace k8s.io/client-go => k8s.io/client-go v0.20.0
