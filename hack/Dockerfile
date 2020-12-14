@@ -1,4 +1,4 @@
-FROM --platform=${BUILDPLATFORM} golang:1.15-buster as builder
+FROM --platform=${BUILDPLATFORM} golang:1.15-buster AS builder
 
 ARG GOPROXY
 WORKDIR /go/src
