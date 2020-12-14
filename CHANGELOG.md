@@ -5,7 +5,16 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.9.0](https://github.com/octohelm/qservice-operator/compare/v0.8.5...v0.9.0)
+
+### Features
+
+* **feat** bump sigs.k8s.io/controller-runtime to v0.7.0 ([d6fb332](https://github.com/octohelm/qservice-operator/commit/d6fb33251f6827e23233ab00a01905e3744de5e3))
+
+
+
 # [0.8.5](https://github.com/octohelm/qservice-operator/compare/v0.8.4...v0.8.5)
+
 
 
 # [0.8.4](https://github.com/octohelm/qservice-operator/compare/v0.8.3...v0.8.4)
