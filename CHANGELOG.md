@@ -5,6 +5,9 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.9.1](https://github.com/octohelm/qservice-operator/compare/v0.9.0...v0.9.1)
+
+
 # [0.9.0](https://github.com/octohelm/qservice-operator/compare/v0.8.5...v0.9.0)
 
 ### Features
