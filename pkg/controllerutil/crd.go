@@ -3,14 +3,24 @@ package controllerutil
 import (
 	"context"
 	"encoding/json"
+
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apiextensionsclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apiextensionstypesv1 "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
+
+func IsResourceRegistered(c client.Client, kind schema.GroupVersionKind) bool {
+	if _, err := c.RESTMapper().RESTMapping(kind.GroupKind()); err != nil {
+		return false
+	}
+	return true
+}
 
 func ApplyCRDs(c *rest.Config, crds ...*apiextensionsv1.CustomResourceDefinition) error {
 	cs, err := apiextensionsclientset.NewForConfig(c)

@@ -6,6 +6,7 @@ require (
 	cloud.google.com/go v0.74.0 // indirect
 	github.com/coreos/go-etcd v2.0.0+incompatible // indirect
 	github.com/cpuguy83/go-md2man v1.0.10 // indirect
+	github.com/davecgh/go-spew v1.1.1
 	github.com/docker/docker v0.7.3-0.20190327010347-be7ac8be2ae0 // indirect
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-courier/ptr v1.0.1

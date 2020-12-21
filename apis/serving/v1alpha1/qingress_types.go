@@ -2,7 +2,7 @@ package v1alpha1
 
 import (
 	"github.com/octohelm/qservice-operator/pkg/strfmt"
-	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
+	networkingv1 "k8s.io/api/networking/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -30,7 +30,7 @@ type QIngressSpec struct {
 	// ingress rule
 	Ingress strfmt.Ingress `json:"ingress"`
 	// backend service
-	Backend extensionsv1beta1.IngressBackend `json:"backend"`
+	Backend networkingv1.IngressBackend `json:"backend"`
 }
 
 type QIngressStatus struct {

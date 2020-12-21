@@ -39,12 +39,6 @@ func start(ctrlOpt ctrl.Options) error {
 		ctrl.Log.WithName("crd").Info("crds created")
 	}
 
-	if err := controllerutil.ApplyGateways(restConfig, controllers.IngressGateways.ToGateways()...); err != nil {
-		ctrl.Log.WithName("gateway").Error(err, "unable to create gateways")
-	} else {
-		ctrl.Log.WithName("gateway").Info("gateways created")
-	}
-
 	mgr, err := ctrl.NewManager(restConfig, ctrlOpt)
 	if err != nil {
 		return errors.Wrap(err, "unable to start manager")

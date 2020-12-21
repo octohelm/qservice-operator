@@ -12,10 +12,8 @@ import (
 	"github.com/octohelm/qservice-operator/pkg/controllerutil"
 	"istio.io/api/networking/v1alpha3"
 	istiov1alpha3 "istio.io/client-go/pkg/apis/networking/v1alpha3"
-	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -29,6 +27,10 @@ type QEgressReconciler struct {
 }
 
 func (r *QEgressReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	if !controllerutil.IsResourceRegistered(r.Client, istiov1alpha3.SchemeGroupVersion.WithKind("ServiceEntry")) {
+		return nil
+	}
+
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.QEgress{}).
 		Owns(&istiov1alpha3.ServiceEntry{}).
@@ -48,30 +50,15 @@ func (r *QEgressReconciler) Reconcile(ctx context.Context, request reconcile.Req
 
 	ctx = controllerutil.ContextWithControllerClient(ctx, r.Client)
 
-	if ok := r.isClusterWithIstio(ctx); ok {
-		ger := toExternalServiceEntity(qegress)
-		if ger != nil {
-			if err := applyServiceEntry(ctx, ger); err != nil {
-				log.Error(err, "apply service entry failed")
-				return reconcile.Result{}, err
-			}
+	ger := toExternalServiceEntity(qegress)
+	if ger != nil {
+		if err := applyServiceEntry(ctx, ger); err != nil {
+			log.Error(err, "apply service entry failed")
+			return reconcile.Result{}, err
 		}
 	}
 
 	return reconcile.Result{}, nil
-}
-
-func (r *QEgressReconciler) isClusterWithIstio(ctx context.Context) bool {
-	n := &corev1.Namespace{}
-	err := r.Client.Get(ctx, types.NamespacedName{Name: "istio-system", Namespace: ""}, n)
-	if err != nil {
-		if apierrors.IsNotFound(err) {
-			return false
-		}
-		r.Log.Error(err, "")
-		return false
-	}
-	return true
 }
 
 func toExternalServiceEntity(qeg *v1alpha1.QEgress) *istiov1alpha3.ServiceEntry {

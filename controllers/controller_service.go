@@ -20,14 +20,13 @@ import (
 	"context"
 	"strings"
 
-	"github.com/octohelm/qservice-operator/apis/serving/v1alpha1"
-
 	"github.com/go-logr/logr"
+	"github.com/octohelm/qservice-operator/apis/serving/v1alpha1"
 	"github.com/octohelm/qservice-operator/pkg/controllerutil"
 	"github.com/octohelm/qservice-operator/pkg/converter"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
-	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
+	networkingv1beta1beta1 "k8s.io/api/networking/v1beta1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -119,7 +118,7 @@ func serviceToQIngress(svc *v1.Service, hostname string) *v1alpha1.QIngress {
 
 	ingress.Spec.Ingress.Host = hostname
 	ingress.Spec.Ingress.Port = port
-	ingress.Spec.Backend = extensionsv1beta1.IngressBackend{
+	ingress.Spec.Backend = networkingv1beta1beta1.IngressBackend{
 		ServiceName: svc.Name,
 		ServicePort: intstr.FromInt(int(port)),
 	}
