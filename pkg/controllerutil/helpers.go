@@ -13,6 +13,14 @@ import (
 var SetControllerReference = controllerutil.SetControllerReference
 
 func IsControllerGenerationEqual(cur metav1.Object, next metav1.Object) bool {
+	if nextOwner := metav1.GetControllerOf(next); nextOwner != nil {
+		if curOwner := metav1.GetControllerOf(cur); curOwner != nil {
+			if curOwner.UID != nextOwner.UID {
+				return false
+			}
+		}
+	}
+
 	annotations := cur.GetAnnotations()
 	nextAnnotations := next.GetAnnotations()
 

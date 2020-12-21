@@ -80,6 +80,7 @@ func (r *IngressReconciler) Reconcile(ctx context.Context, request reconcile.Req
 
 func (r *IngressReconciler) applyVirtualService(ctx context.Context, ingress *networkingv1beta1.Ingress) error {
 	vss := toExportedVirtualServicesByIngress(ingress)
+
 	for i := range vss {
 		r.setControllerReference(vss[i], ingress)
 
