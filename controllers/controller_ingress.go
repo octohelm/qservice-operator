@@ -150,7 +150,7 @@ func toExportedVirtualServicesByIngress(ingress *networkingv1beta1.Ingress) (vss
 			if p.Path != "" {
 				match := &istiotypes.HTTPMatchRequest{
 					Uri: &istiotypes.StringMatch{
-						MatchType: &istiotypes.StringMatch_Exact{Exact: p.Path},
+						MatchType: &istiotypes.StringMatch_Prefix{Prefix: p.Path},
 					},
 				}
 
