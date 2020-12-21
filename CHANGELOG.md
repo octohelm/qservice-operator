@@ -5,6 +5,14 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.9.3](https://github.com/octohelm/qservice-operator/compare/v0.9.2...v0.9.3)
+
+### Bug Fixes
+
+* **fix** take over controlled-by ([356336e](https://github.com/octohelm/qservice-operator/commit/356336e50d1653f52581194786f56e63f2cc9a3f))
+
+
+
 # [0.9.2](https://github.com/octohelm/qservice-operator/compare/v0.9.1...v0.9.2)
 
 ### Bug Fixes
