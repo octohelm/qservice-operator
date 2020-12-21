@@ -5,6 +5,14 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.9.4](https://github.com/octohelm/qservice-operator/compare/v0.9.3...v0.9.4)
+
+### Bug Fixes
+
+* **fix** X-Forwarded-Proto https when force-ssl-redirect ([87a8f31](https://github.com/octohelm/qservice-operator/commit/87a8f312ff85e15545e7472e66a2c2691ee8a47e))
+
+
+
 # [0.9.3](https://github.com/octohelm/qservice-operator/compare/v0.9.2...v0.9.3)
 
 ### Bug Fixes
