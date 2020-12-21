@@ -5,6 +5,14 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.9.5](https://github.com/octohelm/qservice-operator/compare/v0.9.4...v0.9.5)
+
+### Bug Fixes
+
+* **fix** virtual service path default match type shuold be prefix ([24c9e3e](https://github.com/octohelm/qservice-operator/commit/24c9e3ec7159c555ea96db2d67aaf7bdf83900b6))
+
+
+
 # [0.9.4](https://github.com/octohelm/qservice-operator/compare/v0.9.3...v0.9.4)
 
 ### Bug Fixes
