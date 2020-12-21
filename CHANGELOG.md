@@ -5,7 +5,16 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.9.2](https://github.com/octohelm/qservice-operator/compare/v0.9.1...v0.9.2)
+
+### Bug Fixes
+
+* **fix** istio should be optional ([8e8700f](https://github.com/octohelm/qservice-operator/commit/8e8700f3e47f1b722e1c1818abc4b3130bbd881e))
+
+
+
 # [0.9.1](https://github.com/octohelm/qservice-operator/compare/v0.9.0...v0.9.1)
+
 
 
 # [0.9.0](https://github.com/octohelm/qservice-operator/compare/v0.8.5...v0.9.0)
