@@ -99,6 +99,12 @@ func (r *IngressReconciler) setControllerReference(obj metav1.Object, owner meta
 }
 
 func toExportedVirtualServicesByIngress(ingress *networkingv1beta1.Ingress) (vss []*istiov1alpha3.VirtualService) {
+	isForceSSLRedirect := false
+
+	if annotations := ingress.GetAnnotations(); annotations != nil && annotations["nginx.ingress.kubernetes.io/force-ssl-redirect"] == "true" {
+		isForceSSLRedirect = true
+	}
+
 	for i := range ingress.Spec.Rules {
 		rule := ingress.Spec.Rules[i]
 
@@ -131,6 +137,14 @@ func toExportedVirtualServicesByIngress(ingress *networkingv1beta1.Ingress) (vss
 				Route: []*istiotypes.HTTPRouteDestination{
 					{Destination: dest},
 				},
+			}
+
+			if isForceSSLRedirect {
+				route.Headers = &istiotypes.Headers{Request: &istiotypes.Headers_HeaderOperations{
+					Set: map[string]string{
+						"X-Forwarded-Proto": "https",
+					},
+				}}
 			}
 
 			if p.Path != "" {
