@@ -120,65 +120,83 @@ func toExportedVirtualServicesByIngress(ingress *networkingv1beta1.Ingress) (vss
 			vs.Spec.Gateways = append(vs.Spec.Gateways, gatewayName)
 		}
 
+		var fallbackRoute *istiotypes.HTTPRoute
+
 		for j := range rule.HTTP.Paths {
 			p := rule.HTTP.Paths[j]
 
-			dest := &istiotypes.Destination{
-				Host: p.Backend.ServiceName,
+			route, isFallback := ingressPathToHttpRoute(&p, isForceSSLRedirect)
+
+			if !isFallback {
+				vs.Spec.Http = append(vs.Spec.Http, route)
+			} else {
+				fallbackRoute = route
 			}
+		}
 
-			if p.Backend.ServicePort.String() != "" {
-				dest.Port = &istiotypes.PortSelector{
-					Number: uint32(p.Backend.ServicePort.IntValue()),
-				}
-			}
-
-			route := &istiotypes.HTTPRoute{
-				Route: []*istiotypes.HTTPRouteDestination{
-					{Destination: dest},
-				},
-			}
-
-			if isForceSSLRedirect {
-				route.Headers = &istiotypes.Headers{Request: &istiotypes.Headers_HeaderOperations{
-					Set: map[string]string{
-						"X-Forwarded-Proto": "https",
-					},
-				}}
-			}
-
-			if p.Path != "" {
-				match := &istiotypes.HTTPMatchRequest{
-					Uri: &istiotypes.StringMatch{
-						MatchType: &istiotypes.StringMatch_Prefix{Prefix: p.Path},
-					},
-				}
-
-				if p.PathType != nil {
-					switch *p.PathType {
-					case networkingv1beta1.PathTypeExact:
-						match = &istiotypes.HTTPMatchRequest{
-							Uri: &istiotypes.StringMatch{
-								MatchType: &istiotypes.StringMatch_Exact{Exact: p.Path},
-							},
-						}
-					case networkingv1beta1.PathTypePrefix:
-						match = &istiotypes.HTTPMatchRequest{
-							Uri: &istiotypes.StringMatch{
-								MatchType: &istiotypes.StringMatch_Prefix{Prefix: p.Path},
-							},
-						}
-					}
-				}
-
-				route.Match = append(route.Match, match)
-			}
-
-			vs.Spec.Http = append(vs.Spec.Http, route)
+		if fallbackRoute != nil {
+			vs.Spec.Http = append(vs.Spec.Http, fallbackRoute)
 		}
 
 		vss = append(vss, vs)
 	}
 
 	return
+}
+
+func ingressPathToHttpRoute(p *networkingv1beta1.HTTPIngressPath, isForceSSLRedirect bool) (*istiotypes.HTTPRoute, bool) {
+	isFallback := false
+
+	dest := &istiotypes.Destination{
+		Host: p.Backend.ServiceName,
+	}
+
+	if p.Backend.ServicePort.String() != "" {
+		dest.Port = &istiotypes.PortSelector{
+			Number: uint32(p.Backend.ServicePort.IntValue()),
+		}
+	}
+
+	route := &istiotypes.HTTPRoute{
+		Route: []*istiotypes.HTTPRouteDestination{
+			{Destination: dest},
+		},
+	}
+
+	if isForceSSLRedirect {
+		route.Headers = &istiotypes.Headers{Request: &istiotypes.Headers_HeaderOperations{
+			Set: map[string]string{
+				"X-Forwarded-Proto": "https",
+			},
+		}}
+	}
+
+	if p.Path != "" {
+		pathType := networkingv1beta1.PathTypePrefix
+
+		if p.PathType != nil {
+			pathType = *p.PathType
+		}
+
+		switch pathType {
+		case networkingv1beta1.PathTypePrefix:
+			route.Match = append(route.Match, &istiotypes.HTTPMatchRequest{
+				Uri: &istiotypes.StringMatch{
+					MatchType: &istiotypes.StringMatch_Prefix{Prefix: p.Path},
+				},
+			})
+
+			if p.Path == "/" {
+				isFallback = true
+			}
+		case networkingv1beta1.PathTypeExact:
+			route.Match = append(route.Match, &istiotypes.HTTPMatchRequest{
+				Uri: &istiotypes.StringMatch{
+					MatchType: &istiotypes.StringMatch_Exact{Exact: p.Path},
+				},
+			})
+		}
+	}
+
+	return route, isFallback
 }
