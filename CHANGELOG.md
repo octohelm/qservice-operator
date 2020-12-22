@@ -5,6 +5,14 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.9.6](https://github.com/octohelm/qservice-operator/compare/v0.9.5...v0.9.6)
+
+### Bug Fixes
+
+* **fix** ingress to vs should be fallack when path / without exact ([22fa886](https://github.com/octohelm/qservice-operator/commit/22fa886692f88191e11cf1eebe82ab127c50d104))
+
+
+
 # [0.9.5](https://github.com/octohelm/qservice-operator/compare/v0.9.4...v0.9.5)
 
 ### Bug Fixes
