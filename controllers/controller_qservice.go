@@ -225,6 +225,9 @@ func (r *QServiceReconciler) setControllerReference(obj metav1.Object, owner met
 }
 
 func (r *QServiceReconciler) applyQService(ctx context.Context, qsvc *servingv1alpha1.QService) error {
+	if qsvc.Labels == nil {
+		qsvc.Labels = map[string]string{}
+	}
 	qsvc.Labels["app"] = qsvc.Name
 
 	ctx = controllerutil.ContextWithControllerClient(ctx, r.Client)
