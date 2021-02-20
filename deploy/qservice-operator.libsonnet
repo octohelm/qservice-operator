@@ -34,7 +34,8 @@ local version = importstr '../.version';
     ) +
     k.apps.v1.deployment.spec.template.metadata.withLabels({ app: $.values.name }) +
     k.apps.v1.deployment.spec.template.metadata.withAnnotations({ 'sidecar.istio.io/inject': 'false' }) +
-    k.apps.v1.deployment.spec.selector.withMatchLabels({ app: $.values.name })
+    k.apps.v1.deployment.spec.selector.withMatchLabels({ app: $.values.name }) +
+    k.apps.v1.deployment.spec.template.spec.withServiceAccount($.serviceAccount.metadata.name)
   ,
 
   rules:: [

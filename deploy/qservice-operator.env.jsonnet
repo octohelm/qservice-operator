@@ -1,4 +1,4 @@
-local q = import './qservice-operator.jsonnet';
+local q = import './qservice-operator.libsonnet';
 
 {
   apiVersion: 'tanka.dev/v1alpha1',
