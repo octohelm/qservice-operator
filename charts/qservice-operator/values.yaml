@@ -1,6 +1,0 @@
-image:
-  hub: docker.io/octohelm
-  tag: 0.8.4
-  pullPolicy: IfNotPresent
-
-ingressGateways: "auto-internal:hw-dev.rktl.xyz,external:hw-dev.querycap.com"
