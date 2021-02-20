@@ -5,7 +5,16 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.9.9](https://github.com/octohelm/qservice-operator/compare/v0.9.8...v0.9.9)
+
+### Bug Fixes
+
+* **fix(deploy):** fix service account ([f57cf94](https://github.com/octohelm/qservice-operator/commit/f57cf94ddf220221ff616d11e9a81dfd6c960cd9))
+
+
+
 # [0.9.8](https://github.com/octohelm/qservice-operator/compare/v0.9.7...v0.9.8)
+
 
 
 # [0.9.7](https://github.com/octohelm/qservice-operator/compare/v0.9.6...v0.9.7)
