@@ -38,18 +38,7 @@ lint:
 	husky hook commit-msg
 
 apply.example:
-	kubectl apply --filename ./deploy/examples/service.yaml
-
-delete.example:
-	kubectl delete --filename ./deploy/examples/service.yaml
-
-test.apply: apply
-	$(MAKE) apply.example
-	kubectl get deployments -n default | grep srv-test
-
-test.delete:
-	$(MAKE) delete.example
-	kubectl get deployments -n default | grep srv-test
+	cuem k apply ./deploy/qservice-opreator.cue
 
 gen-deepcopy: install-deepcopy-gen
 	deepcopy-gen \
