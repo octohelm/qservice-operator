@@ -5,6 +5,14 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.10.0](https://github.com/octohelm/qservice-operator/compare/v0.9.9...v0.10.0)
+
+### Features
+
+* **feat** k8s networks bump to v1 ([bfdf259](https://github.com/octohelm/qservice-operator/commit/bfdf2599faccc9da07275e038d1d2da302b04333))
+
+
+
 # [0.9.9](https://github.com/octohelm/qservice-operator/compare/v0.9.8...v0.9.9)
 
 ### Bug Fixes
