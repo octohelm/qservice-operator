@@ -1,5 +1,5 @@
 PKG = $(shell cat go.mod | grep "^module " | sed -e "s/module //g")
-VERSION = $(shell cat .version)
+VERSION = $(shell cat internal/version/version)
 COMMIT_SHA ?= $(shell git rev-parse --short HEAD)
 
 GOBUILD = CGO_ENABLED=0 STATIC=0 go build -ldflags "-extldflags -static -s -w -X $(PKG)/version.Version=$(VERSION)+sha.$(COMMIT_SHA)"
@@ -18,8 +18,11 @@ run:
 	WATCH_NAMESPACE=default \
 	go run ./main.go
 
-build:
+build: download
 	$(GOBUILD) -o $(GOBIN)/$(NAME)-$(GOOS)-$(GOARCH) ./main.go
+
+download:
+	go mod download -x
 
 prepare:
 	@echo ::set-output name=image::$(NAME):$(TAG)

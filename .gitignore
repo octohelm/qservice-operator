@@ -78,7 +78,5 @@ tags
 
 bin/
 
-go.sum
-
 jpath/
 output/
