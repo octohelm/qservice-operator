@@ -23,7 +23,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/octohelm/qservice-operator/apis/serving/v1alpha1"
 	"github.com/octohelm/qservice-operator/pkg/controllerutil"
-	networkingv1beta1 "k8s.io/api/networking/v1beta1"
+	networkingv1 "k8s.io/api/networking/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -42,7 +42,7 @@ type QIngressReconciler struct {
 func (r *QIngressReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.QIngress{}).
-		Owns(&networkingv1beta1.Ingress{}).
+		Owns(&networkingv1.Ingress{}).
 		Complete(r)
 }
 
@@ -88,24 +88,24 @@ func (r *QIngressReconciler) setControllerReference(obj metav1.Object, owner met
 	obj.SetAnnotations(controllerutil.AnnotateControllerGeneration(obj.GetAnnotations(), owner.GetGeneration()))
 }
 
-func toIngressByQIngress(qingress *v1alpha1.QIngress, hostname string) *networkingv1beta1.Ingress {
-	ing := &networkingv1beta1.Ingress{}
+func toIngressByQIngress(qingress *v1alpha1.QIngress, hostname string) *networkingv1.Ingress {
+	ing := &networkingv1.Ingress{}
 
 	ing.Namespace = qingress.Namespace
 	ing.Name = qingress.Name
 	ing.Annotations = qingress.Annotations
 
-	paths := make([]networkingv1beta1.HTTPIngressPath, 0)
+	paths := make([]networkingv1.HTTPIngressPath, 0)
 
 	if len(qingress.Spec.Ingress.Paths) > 0 {
 		for i := range qingress.Spec.Ingress.Paths {
 			p := qingress.Spec.Ingress.Paths[i]
 
-			htp := networkingv1beta1.HTTPIngressPath{}
+			htp := networkingv1.HTTPIngressPath{}
 			htp.Path = p.Path
 
 			if p.Exactly {
-				pt := networkingv1beta1.PathTypeExact
+				pt := networkingv1.PathTypeExact
 				htp.PathType = &pt
 			}
 
@@ -113,17 +113,17 @@ func toIngressByQIngress(qingress *v1alpha1.QIngress, hostname string) *networki
 			paths = append(paths, htp)
 		}
 	} else {
-		htp := networkingv1beta1.HTTPIngressPath{}
+		htp := networkingv1.HTTPIngressPath{}
 
 		htp.Backend = qingress.Spec.Backend
 		paths = append(paths, htp)
 	}
 
-	ing.Spec.Rules = []networkingv1beta1.IngressRule{
+	ing.Spec.Rules = []networkingv1.IngressRule{
 		{
 			Host: hostname,
-			IngressRuleValue: networkingv1beta1.IngressRuleValue{
-				HTTP: &networkingv1beta1.HTTPIngressRuleValue{
+			IngressRuleValue: networkingv1.IngressRuleValue{
+				HTTP: &networkingv1.HTTPIngressRuleValue{
 					Paths: paths,
 				},
 			},

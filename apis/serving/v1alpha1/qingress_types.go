@@ -2,7 +2,7 @@ package v1alpha1
 
 import (
 	"github.com/octohelm/qservice-operator/pkg/strfmt"
-	networkingv1 "k8s.io/api/networking/v1beta1"
+	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

@@ -9,7 +9,7 @@ import (
 	istioneteworkingv1alpha3 "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	networkingv1beta1 "k8s.io/api/networking/v1beta1"
+	networkingv1 "k8s.io/api/networking/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -34,10 +34,10 @@ func applyDeployment(ctx context.Context, deployment *appsv1.Deployment) error {
 	return nil
 }
 
-func applyIngress(ctx context.Context, ingress *networkingv1beta1.Ingress) error {
+func applyIngress(ctx context.Context, ingress *networkingv1.Ingress) error {
 	c := controllerutil.ControllerClientFromContext(ctx)
 
-	current := &networkingv1beta1.Ingress{}
+	current := &networkingv1.Ingress{}
 
 	err := c.Get(ctx, types.NamespacedName{Name: ingress.Name, Namespace: ingress.Namespace}, current)
 	if err != nil {
