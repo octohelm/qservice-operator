@@ -99,15 +99,15 @@ func (r *ServiceReconciler) applyAutoQIngress(ctx context.Context, svc *v1.Servi
 }
 
 func serviceToQIngress(svc *v1.Service, hostname string) *v1alpha1.QIngress {
-	ingress := &v1alpha1.QIngress{}
-	ingress.Namespace = svc.Namespace
-	ingress.Name = svc.Name + "-" + converter.HashID(hostname)
-	ingress.Labels = svc.GetLabels()
-	if ingress.Labels == nil {
-		ingress.Labels = map[string]string{}
+	qingress := &v1alpha1.QIngress{}
+	qingress.Namespace = svc.Namespace
+	qingress.Name = svc.Name + "-" + converter.HashID(hostname)
+	qingress.Labels = svc.GetLabels()
+	if qingress.Labels == nil {
+		qingress.Labels = map[string]string{}
 	}
-	ingress.Labels[LabelServiceName] = svc.Name
-	ingress.Labels[LabelGateway] = getGateway(hostname)
+	qingress.Labels[LabelServiceName] = svc.Name
+	qingress.Labels[LabelGateway] = getGateway(hostname)
 
 	port := uint16(80)
 
@@ -115,9 +115,9 @@ func serviceToQIngress(svc *v1.Service, hostname string) *v1alpha1.QIngress {
 		port = uint16(svc.Spec.Ports[0].Port)
 	}
 
-	ingress.Spec.Ingress.Host = hostname
-	ingress.Spec.Ingress.Port = port
-	ingress.Spec.Backend = networkingv1.IngressBackend{
+	qingress.Spec.Ingress.Host = safeDNS1121Host(hostname)
+	qingress.Spec.Ingress.Port = port
+	qingress.Spec.Backend = networkingv1.IngressBackend{
 		Service: &networkingv1.IngressServiceBackend{
 			Name: svc.Name,
 			Port: networkingv1.ServiceBackendPort{
@@ -126,5 +126,5 @@ func serviceToQIngress(svc *v1.Service, hostname string) *v1alpha1.QIngress {
 		},
 	}
 
-	return ingress
+	return qingress
 }
