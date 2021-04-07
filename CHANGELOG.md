@@ -5,6 +5,14 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.10.4](https://github.com/octohelm/qservice-operator/compare/v0.10.3...v0.10.4)
+
+### Bug Fixes
+
+* **fix** convert to safe DNS1121 Host ([175e119](https://github.com/octohelm/qservice-operator/commit/175e1193bc49103922c5751e712fe98dd9ca794e))
+
+
+
 # [0.10.3](https://github.com/octohelm/qservice-operator/compare/v0.10.2...v0.10.3)
 
 ### Bug Fixes
