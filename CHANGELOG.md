@@ -5,7 +5,16 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.10.2](https://github.com/octohelm/qservice-operator/compare/v0.10.1...v0.10.2)
+
+### Bug Fixes
+
+* **fix** path type is required ([acc2578](https://github.com/octohelm/qservice-operator/commit/acc25780af893af0420db6fb108298ff69e0bddd))
+
+
+
 # [0.10.1](https://github.com/octohelm/qservice-operator/compare/v0.10.0...v0.10.1)
+
 
 
 # [0.10.0](https://github.com/octohelm/qservice-operator/compare/v0.9.9...v0.10.0)
