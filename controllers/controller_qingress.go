@@ -107,6 +107,9 @@ func toIngressByQIngress(qingress *v1alpha1.QIngress, hostname string) *networki
 			if p.Exactly {
 				pt := networkingv1.PathTypeExact
 				htp.PathType = &pt
+			} else {
+				pt := networkingv1.PathTypeImplementationSpecific
+				htp.PathType = &pt
 			}
 
 			htp.Backend = qingress.Spec.Backend
