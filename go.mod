@@ -30,8 +30,8 @@ require (
 	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
-	istio.io/api v0.0.0-20210331232043-e3f75bd8b686
-	istio.io/client-go v1.9.2
+	istio.io/api v0.0.0-20210420211535-1c598ea4139c
+	istio.io/client-go v1.9.4
 	istio.io/gogo-genproto v0.0.0-20210315160435-c7217029b7d8 // indirect
 	k8s.io/api v0.20.5
 	k8s.io/apiextensions-apiserver v0.20.5
@@ -43,7 +43,6 @@ require (
 	mvdan.cc/sh/v3 v3.2.4
 	sigs.k8s.io/controller-runtime v0.8.3
 	sigs.k8s.io/structured-merge-diff/v4 v4.1.0 // indirect
-	sigs.k8s.io/yaml v1.2.0 // indirect
 )
 
 replace k8s.io/client-go => k8s.io/client-go v0.20.4
