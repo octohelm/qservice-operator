@@ -33,7 +33,7 @@ require (
 	istio.io/client-go v1.9.4
 	istio.io/gogo-genproto v0.0.0-20210504140518-13eaf3bca648 // indirect
 	k8s.io/api v0.20.5
-	k8s.io/apiextensions-apiserver v0.20.5
+	k8s.io/apiextensions-apiserver v0.21.0
 	k8s.io/apimachinery v0.21.0
 	k8s.io/client-go v0.21.0
 	k8s.io/component-base v0.21.0 // indirect
