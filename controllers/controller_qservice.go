@@ -130,7 +130,7 @@ func (r *QServiceReconciler) updateStatusFromDeployment(ctx context.Context, qsv
 		return err
 	}
 
-	if reflect.DeepEqual(deployment.Status, qsvc.Status.DeploymentStage) {
+	if reflect.DeepEqual(deployment.Status, qsvc.Status.DeploymentStatus) {
 		return nil
 	}
 
