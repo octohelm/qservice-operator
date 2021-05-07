@@ -5,6 +5,14 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.10.5](https://github.com/octohelm/qservice-operator/compare/v0.10.4...v0.10.5)
+
+### Bug Fixes
+
+* **fix** should check DeploymentStatus ([b15a48b](https://github.com/octohelm/qservice-operator/commit/b15a48b160460b243240842320e38f42f9cac563))
+
+
+
 # [0.10.4](https://github.com/octohelm/qservice-operator/compare/v0.10.3...v0.10.4)
 
 ### Bug Fixes
