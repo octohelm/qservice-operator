@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/go-logr/logr"
-	"github.com/octohelm/qservice-operator/apis/serving/v1alpha1"
+	"github.com/octohelm/qservice-operator/pkg/apis/serving/v1alpha1"
 	"github.com/octohelm/qservice-operator/pkg/controllerutil"
 	"istio.io/api/networking/v1alpha3"
 	istiov1alpha3 "istio.io/client-go/pkg/apis/networking/v1alpha3"

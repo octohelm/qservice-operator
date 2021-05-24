@@ -6,10 +6,10 @@ import (
 
 	"github.com/octohelm/qservice-operator/pkg/controllerutil"
 
-	"github.com/octohelm/qservice-operator/apis/serving"
-	servingapis "github.com/octohelm/qservice-operator/apis/serving/v1alpha1"
-	"github.com/octohelm/qservice-operator/controllers"
 	"github.com/octohelm/qservice-operator/internal/version"
+	"github.com/octohelm/qservice-operator/pkg/apis/serving"
+	servingapis "github.com/octohelm/qservice-operator/pkg/apis/serving/v1alpha1"
+	"github.com/octohelm/qservice-operator/pkg/controllers"
 	"github.com/pkg/errors"
 	istioapis "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	"k8s.io/apimachinery/pkg/runtime"

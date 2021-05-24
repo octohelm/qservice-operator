@@ -28,7 +28,6 @@ import (
 
 	"github.com/go-courier/ptr"
 	"github.com/go-logr/logr"
-	"github.com/octohelm/qservice-operator/pkg/apiutil"
 	"github.com/octohelm/qservice-operator/pkg/strfmt"
 	appsv1 "k8s.io/api/apps/v1"
 	autoscalingv2beta1 "k8s.io/api/autoscaling/v2beta1"
@@ -131,7 +130,7 @@ func applyHorizontalPodAutoscaler(ctx context.Context, c client.Client, namespac
 		return c.Create(ctx, hpa)
 	}
 
-	return c.Patch(ctx, hpa, apiutil.JSONPatch(types.MergePatchType))
+	return c.Patch(ctx, hpa, client.Merge)
 }
 
 var AnnotationKeyAutoScalingGroup = "autoscaling.octohelm.tech"

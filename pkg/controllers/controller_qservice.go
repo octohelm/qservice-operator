@@ -14,7 +14,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	"github.com/go-logr/logr"
-	servingv1alpha1 "github.com/octohelm/qservice-operator/apis/serving/v1alpha1"
+	servingv1alpha1 "github.com/octohelm/qservice-operator/pkg/apis/serving/v1alpha1"
 	"github.com/octohelm/qservice-operator/pkg/controllerutil"
 	"github.com/octohelm/qservice-operator/pkg/converter"
 	"github.com/octohelm/qservice-operator/pkg/strfmt"
@@ -73,21 +73,59 @@ func (r *QServiceReconciler) Reconcile(ctx context.Context, request reconcile.Re
 		return reconcile.Result{}, err
 	}
 
+	shouldRequeueAfter := 0 * time.Second
+
 	if err := r.applyQService(ctx, qsvc); err != nil {
 		log.Error(err, "apply failed")
 
 		qsvc.Status.DeploymentStage = "FAILED"
 		qsvc.Status.DeploymentComments = err.Error()
 	} else {
-		_ = r.updateStatusFromDeployment(ctx, qsvc)
 		_ = r.updateStatusFromQIngresses(ctx, qsvc)
+
+		deployment := &appsv1.Deployment{}
+
+		if err := r.Client.Get(ctx, types.NamespacedName{Name: qsvc.Name, Namespace: qsvc.Namespace}, deployment); err != nil {
+			return reconcile.Result{}, nil
+		}
+
+		if !reflect.DeepEqual(deployment.Status, qsvc.Status.DeploymentStatus) {
+			podList := &corev1.PodList{}
+
+			if err := r.Client.List(
+				ctx, podList,
+				client.InNamespace(qsvc.Namespace),
+				client.MatchingLabels(map[string]string{
+					"app": qsvc.Name,
+				}),
+			); err != nil {
+				return reconcile.Result{}, nil
+			}
+
+			qsvc.Status.DeploymentStatus = deployment.Status
+			qsvc.Status.DeploymentStage, qsvc.Status.DeploymentComments = toDeploymentStage(&deployment.Status, podList.Items)
+
+			// update deployment status to trigger lifecycle for getting container status from pod list
+			if qsvc.Status.DeploymentStage == "PROCESSING" {
+				for i := range deployment.Status.Conditions {
+					c := deployment.Status.Conditions[i]
+
+					if c.Type == "Progressing" && c.Reason != "NewReplicaSetAvailable" {
+						shouldRequeueAfter = time.Second * 3
+					}
+				}
+			}
+		}
 	}
 
 	if err := r.Client.Status().Update(ctx, qsvc); err != nil {
 		return reconcile.Result{}, err
 	}
 
-	return reconcile.Result{}, nil
+	return reconcile.Result{
+		Requeue:      shouldRequeueAfter != 0,
+		RequeueAfter: shouldRequeueAfter,
+	}, nil
 }
 
 func (r *QServiceReconciler) updateStatusFromQIngresses(ctx context.Context, qsvc *servingv1alpha1.QService) error {
@@ -118,63 +156,6 @@ func (r *QServiceReconciler) updateStatusFromQIngresses(ctx context.Context, qsv
 		}
 
 		qsvc.Status.Ingresses[item.Name] = append(qsvc.Status.Ingresses[item.Name], item.Spec.Ingress)
-	}
-
-	return nil
-}
-
-func (r *QServiceReconciler) updateStatusFromDeployment(ctx context.Context, qsvc *servingv1alpha1.QService) error {
-	deployment := &appsv1.Deployment{}
-
-	if err := r.Client.Get(ctx, types.NamespacedName{Name: qsvc.Name, Namespace: qsvc.Namespace}, deployment); err != nil {
-		return err
-	}
-
-	if reflect.DeepEqual(deployment.Status, qsvc.Status.DeploymentStatus) {
-		return nil
-	}
-
-	podList := &corev1.PodList{}
-
-	if err := r.Client.List(
-		ctx, podList,
-		client.InNamespace(qsvc.Namespace),
-		client.MatchingLabels(map[string]string{
-			"app": qsvc.Name,
-		}),
-	); err != nil {
-		return err
-	}
-
-	qsvc.Status.DeploymentStatus = deployment.Status
-	qsvc.Status.DeploymentStage, qsvc.Status.DeploymentComments = toDeploymentStage(&deployment.Status, podList.Items)
-
-	// update deployment status to trigger lifecycle for getting container status from pod list
-	if qsvc.Status.DeploymentStage == "PROCESSING" {
-		for i := range deployment.Status.Conditions {
-			c := deployment.Status.Conditions[i]
-
-			idx := i
-
-			if c.Type == "Progressing" && c.Reason != "NewReplicaSetAvailable" {
-				go func() {
-					interval := 5 * time.Second
-
-					time.Sleep(interval)
-
-					deployment.Status.Conditions[idx].LastUpdateTime = metav1.Time{
-						Time: deployment.Status.Conditions[idx].LastUpdateTime.Add(interval),
-					}
-
-					err := r.Client.Status().Update(ctx, deployment)
-					if err != nil {
-						if !apierrors.IsConflict(err) {
-							r.Log.Error(err, "update deployment status failed")
-						}
-					}
-				}()
-			}
-		}
 	}
 
 	return nil

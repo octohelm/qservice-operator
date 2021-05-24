@@ -3,8 +3,9 @@ package controllers
 import (
 	"context"
 
-	"github.com/octohelm/qservice-operator/apis/serving/v1alpha1"
-	"github.com/octohelm/qservice-operator/pkg/apiutil"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/octohelm/qservice-operator/pkg/apis/serving/v1alpha1"
 	"github.com/octohelm/qservice-operator/pkg/controllerutil"
 	istioneteworkingv1alpha3 "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	appsv1 "k8s.io/api/apps/v1"
@@ -28,7 +29,7 @@ func applyDeployment(ctx context.Context, deployment *appsv1.Deployment) error {
 	}
 
 	if !controllerutil.IsControllerGenerationEqual(current, deployment) {
-		return c.Patch(ctx, deployment, apiutil.JSONPatch(types.StrategicMergePatchType))
+		return c.Patch(ctx, deployment, client.Merge)
 	}
 
 	return nil
@@ -48,7 +49,7 @@ func applyIngress(ctx context.Context, ingress *networkingv1.Ingress) error {
 	}
 
 	if !controllerutil.IsControllerGenerationEqual(current, ingress) {
-		return c.Patch(ctx, ingress, apiutil.JSONPatch(types.StrategicMergePatchType))
+		return c.Patch(ctx, ingress, client.Merge)
 	}
 
 	return nil
@@ -68,7 +69,7 @@ func applyService(ctx context.Context, service *corev1.Service) error {
 	}
 
 	if !controllerutil.IsControllerGenerationEqual(current, service) {
-		return c.Patch(ctx, service, apiutil.JSONPatch(types.MergePatchType))
+		return c.Patch(ctx, service, client.Merge)
 	}
 
 	return nil
@@ -88,7 +89,7 @@ func applySecret(ctx context.Context, secret *corev1.Secret) error {
 	}
 
 	if !controllerutil.IsControllerGenerationEqual(current, secret) {
-		return c.Patch(ctx, secret, apiutil.JSONPatch(types.MergePatchType))
+		return c.Patch(ctx, secret, client.Merge)
 	}
 
 	return nil
@@ -108,7 +109,7 @@ func applyVirtualService(ctx context.Context, vs *istioneteworkingv1alpha3.Virtu
 	}
 
 	if !controllerutil.IsControllerGenerationEqual(current, vs) {
-		return c.Patch(ctx, vs, apiutil.JSONPatch(types.MergePatchType))
+		return c.Patch(ctx, vs, client.Merge)
 	}
 
 	return nil
@@ -128,7 +129,7 @@ func applyServiceEntry(ctx context.Context, se *istioneteworkingv1alpha3.Service
 	}
 
 	if !controllerutil.IsControllerGenerationEqual(current, se) {
-		return c.Patch(ctx, se, apiutil.JSONPatch(types.MergePatchType))
+		return c.Patch(ctx, se, client.Merge)
 	}
 
 	return nil
@@ -148,7 +149,7 @@ func applyQIngress(ctx context.Context, qingress *v1alpha1.QIngress) error {
 	}
 
 	if !controllerutil.IsControllerGenerationEqual(current, qingress) {
-		return c.Patch(ctx, qingress, apiutil.JSONPatch(types.StrategicMergePatchType))
+		return c.Patch(ctx, qingress, client.Merge)
 	}
 
 	return nil

@@ -1,0 +1,29 @@
+project_name: qservice-operator
+dist: ./bin
+before:
+  hooks:
+    - go mod download -x
+changelog:
+  filters:
+    exclude:
+      - '^docs'
+      - '^chore'
+builds:
+  - &_build
+    id: qservice-operator
+    dir: ./cmd/qservice-operator
+    binary: qservice-operator
+
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X github.com/octohelm/qservice-operator/internal/version.Version={{ .Version }}+sha.{{ .FullCommit }}
+    mod_timestamp: '{{ .CommitTimestamp }}'
+

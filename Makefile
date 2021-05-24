@@ -1,40 +1,26 @@
 PKG = $(shell cat go.mod | grep "^module " | sed -e "s/module //g")
 VERSION = $(shell cat internal/version/version)
 COMMIT_SHA ?= $(shell git rev-parse --short HEAD)
-
-GOBUILD = CGO_ENABLED=0 STATIC=0 go build -ldflags "-extldflags -static -s -w -X $(PKG)/version.Version=$(VERSION)+sha.$(COMMIT_SHA)"
-GOBIN ?= ./bin
-GOOS ?= $(shell go env GOOS)
-GOARCH ?= $(shell go env GOARCH)
-NAME ?= qservice-operator
 TAG ?= $(VERSION)
 
-PLATFORM ?= linux/amd64,linux/arm64
+GOBIN ?= ./bin
 
-HUB ?= docker.io/octohelm
+PUSH ?= true
+NAMESPACES ?= docker.io/octohelm
+TARGETS ?= qservice-operator
+
+DOCKER_BUILDX_BUILD = docker buildx build \
+	--label=org.opencontainers.image.source=https://github.com/$(REPO) \
+	--label=org.opencontainers.image.revision=$(COMMIT_SHA) \
+	--platform=linux/arm64,linux/amd64
 
 run:
-	INGRESS_GATEWAYS=auto-internal:hw-dev.rktl.xyz \
+	INGRESS_GATEWAYS=auto-internal:hw-infra.rktl.xyz \
 	WATCH_NAMESPACE=default \
-	go run ./main.go
+	go run ./cmd/qservice-operator/main.go
 
-build: download
-	$(GOBUILD) -o $(GOBIN)/$(NAME)-$(GOOS)-$(GOARCH) ./main.go
-
-download:
-	go mod download -x
-
-prepare:
-	@echo ::set-output name=image::$(NAME):$(TAG)
-	@echo ::set-output name=build_args::VERSION=$(VERSION)
-
-build.dockerx:
-	docker buildx build \
-		--push \
-		--build-arg=GOPROXY=${GOPROXY} \
-		--platform=$(PLATFORM) \
-		--tag $(HUB)/$(NAME):$(TAG) \
-		-f hack/Dockerfile .
+build:
+	goreleaser build --snapshot --rm-dist
 
 lint:
 	husky hook pre-commit
@@ -43,11 +29,16 @@ lint:
 apply.example:
 	cuem k apply ./deploy/qservice-opreator.cue
 
-gen-deepcopy: install-deepcopy-gen
+gen-deepcopy:
 	deepcopy-gen \
 		--output-file-base zz_generated.deepcopy \
 		--go-header-file ./hack/boilerplate.go.txt \
-		--input-dirs $(PKG)/apis/serving/v1alpha1,$(PKG)/pkg/strfmt
+		--input-dirs $(PKG)/pkg/apis/serving/v1alpha1,$(PKG)/pkg/strfmt
 
-install-deepcopy-gen:
-	go install k8s.io/code-generator/cmd/deepcopy-gen
+dockerx: build
+	$(foreach target,$(TARGETS),\
+		$(DOCKER_BUILDX_BUILD) \
+		--build-arg=VERSION=$(VERSION) \
+		$(foreach namespace,$(NAMESPACES),--tag=$(namespace)/$(target):$(TAG)) \
+		--file=cmd/$(target)/Dockerfile . ;\
+	)

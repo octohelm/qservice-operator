@@ -21,7 +21,7 @@ import (
 	"strings"
 
 	"github.com/go-logr/logr"
-	"github.com/octohelm/qservice-operator/apis/serving/v1alpha1"
+	"github.com/octohelm/qservice-operator/pkg/apis/serving/v1alpha1"
 	"github.com/octohelm/qservice-operator/pkg/controllerutil"
 	"github.com/octohelm/qservice-operator/pkg/converter"
 	corev1 "k8s.io/api/core/v1"

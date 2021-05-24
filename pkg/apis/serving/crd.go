@@ -1,7 +1,7 @@
 package serving
 
 import (
-	"github.com/octohelm/qservice-operator/apis/serving/v1alpha1"
+	"github.com/octohelm/qservice-operator/pkg/apis/serving/v1alpha1"
 	"github.com/octohelm/qservice-operator/pkg/apiutil"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )

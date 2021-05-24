@@ -1,7 +1,7 @@
 package converter
 
 import (
-	"github.com/octohelm/qservice-operator/apis/serving/v1alpha1"
+	"github.com/octohelm/qservice-operator/pkg/apis/serving/v1alpha1"
 )
 
 type QService = v1alpha1.QService
