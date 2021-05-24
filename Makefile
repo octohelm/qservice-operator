@@ -32,7 +32,7 @@ apply.example:
 gen-deepcopy:
 	deepcopy-gen \
 		--output-file-base zz_generated.deepcopy \
-		--go-header-file ./hack/boilerplate.go.txt \
+		--go-header-file ./boilerplate.go.txt \
 		--input-dirs $(PKG)/pkg/apis/serving/v1alpha1,$(PKG)/pkg/strfmt
 
 dockerx: build
