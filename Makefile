@@ -26,8 +26,12 @@ lint:
 	husky hook pre-commit
 	husky hook commit-msg
 
+eval:
+	cuem eval -w --output=./bin/qservice-operator.cue ./deploy/component
+
 apply.example:
 	cuem k apply ./deploy/qservice-opreator.cue
+
 
 gen-deepcopy:
 	deepcopy-gen \

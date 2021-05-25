@@ -8,7 +8,7 @@ package component
 	image: {
 		hub:        *"docker.io/octohelm" | string
 		name:       *"qservice-operator" | string
-		tag:        *"0.10.3" | string
+		tag:        *"0.10.6" | string
 		pullPolicy: *"IfNotPresent" | string
 	}
 }

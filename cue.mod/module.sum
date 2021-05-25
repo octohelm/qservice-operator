@@ -1,4 +1,4 @@
-github.com/octohelm/cuem v0.0.0-20210401081148-fa62bbf6a07a h1:w9OiHmyVw33Tw0j37xBXWz6lJjA3LQCWIxagKKhcnvY=
+github.com/octohelm/cuem v0.0.0-20210520091405-7e9ddaa903c7 h1:HkQbkyLbmeUtKYhEFLEYUSwdH4tZiT7OVZVhmVTiRwc=
 k8s.io/api v0.20.5 h1:zsMTffV0Le2EiI0aKvlTHEnXGxk1HiqGRhJcCPiI7JI=
 k8s.io/api/apps/v1 v0.20.5 h1:zsMTffV0Le2EiI0aKvlTHEnXGxk1HiqGRhJcCPiI7JI=
 k8s.io/api/autoscaling/v2beta1 v0.20.5 h1:zsMTffV0Le2EiI0aKvlTHEnXGxk1HiqGRhJcCPiI7JI=
