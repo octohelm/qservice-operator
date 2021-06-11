@@ -24,7 +24,7 @@ require (
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	istio.io/api v0.0.0-20210520230835-8e3314c46788
-	istio.io/client-go v1.10.0
+	istio.io/client-go v1.10.1
 	istio.io/gogo-genproto v0.0.0-20210520231436-67c5ff6bb4bf // indirect
 	k8s.io/api v0.21.1
 	k8s.io/apiextensions-apiserver v0.21.1
