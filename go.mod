@@ -28,11 +28,10 @@ require (
 	istio.io/gogo-genproto v0.0.0-20210520231436-67c5ff6bb4bf // indirect
 	k8s.io/api v0.21.1
 	k8s.io/apiextensions-apiserver v0.21.1
-	k8s.io/apimachinery v0.21.1
+	k8s.io/apimachinery v0.21.3
 	k8s.io/client-go v0.21.1
 	k8s.io/kube-openapi v0.0.0-20210524163139-412c2b45c7d3 // indirect
 	k8s.io/utils v0.0.0-20210521133846-da695404a2bc // indirect
 	mvdan.cc/sh/v3 v3.3.0
 	sigs.k8s.io/controller-runtime v0.9.0-beta.5
-	sigs.k8s.io/structured-merge-diff/v4 v4.1.1 // indirect
 )
