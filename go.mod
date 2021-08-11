@@ -8,7 +8,6 @@ require (
 	github.com/go-courier/ptr v1.0.1
 	github.com/go-courier/reflectx v1.3.4
 	github.com/go-logr/logr v0.4.0
-	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/uuid v1.2.0 // indirect
 	github.com/onsi/gomega v1.14.0
@@ -19,10 +18,10 @@ require (
 	istio.io/api v0.0.0-20210520230835-8e3314c46788
 	istio.io/client-go v1.10.0
 	istio.io/gogo-genproto v0.0.0-20210520231436-67c5ff6bb4bf // indirect
-	k8s.io/api v0.21.3
-	k8s.io/apiextensions-apiserver v0.21.3
-	k8s.io/apimachinery v0.21.3
-	k8s.io/client-go v0.21.3
+	k8s.io/api v0.22.0
+	k8s.io/apiextensions-apiserver v0.22.0
+	k8s.io/apimachinery v0.22.0
+	k8s.io/client-go v0.22.0
 	k8s.io/kube-openapi v0.0.0-20210524163139-412c2b45c7d3 // indirect
 	mvdan.cc/sh/v3 v3.3.0
 	sigs.k8s.io/controller-runtime v0.9.6
