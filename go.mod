@@ -16,8 +16,8 @@ require (
 	go.uber.org/multierr v1.7.0 // indirect
 	golang.org/x/net v0.0.0-20210521195947-fe42d452be8f // indirect
 	gopkg.in/yaml.v2 v2.4.0
-	istio.io/api v0.0.0-20210520230835-8e3314c46788
-	istio.io/client-go v1.10.0
+	istio.io/api v0.0.0-20210713195055-3a340e4f154e
+	istio.io/client-go v1.10.3
 	istio.io/gogo-genproto v0.0.0-20210520231436-67c5ff6bb4bf // indirect
 	k8s.io/api v0.21.3
 	k8s.io/apiextensions-apiserver v0.21.3
