@@ -9,32 +9,32 @@ func SetupWithManager(mgr ctrl.Manager) error {
 	return SetupReconcilerWithManager(
 		mgr,
 		&QServiceReconciler{
-			Client: mgr.GetClient(),
+			Client: ClientWithoutCache(mgr.GetClient(), mgr.GetAPIReader()),
 			Log:    mgr.GetLogger().WithName("controllers").WithName("QService"),
 			Scheme: mgr.GetScheme(),
 		},
 		&DeploymentReconciler{
-			Client: mgr.GetClient(),
+			Client: ClientWithoutCache(mgr.GetClient(), mgr.GetAPIReader()),
 			Log:    mgr.GetLogger().WithName("controllers").WithName("Deployment"),
 			Scheme: mgr.GetScheme(),
 		},
 		&IngressReconciler{
-			Client: mgr.GetClient(),
+			Client: ClientWithoutCache(mgr.GetClient(), mgr.GetAPIReader()),
 			Log:    mgr.GetLogger().WithName("controllers").WithName("Ingress"),
 			Scheme: mgr.GetScheme(),
 		},
 		&ServiceReconciler{
-			Client: mgr.GetClient(),
+			Client: ClientWithoutCache(mgr.GetClient(), mgr.GetAPIReader()),
 			Log:    mgr.GetLogger().WithName("controllers").WithName("Service"),
 			Scheme: mgr.GetScheme(),
 		},
 		&QIngressReconciler{
-			Client: mgr.GetClient(),
+			Client: ClientWithoutCache(mgr.GetClient(), mgr.GetAPIReader()),
 			Log:    mgr.GetLogger().WithName("controllers").WithName("QIngress"),
 			Scheme: mgr.GetScheme(),
 		},
 		&QEgressReconciler{
-			Client: mgr.GetClient(),
+			Client: ClientWithoutCache(mgr.GetClient(), mgr.GetAPIReader()),
 			Log:    mgr.GetLogger().WithName("controllers").WithName("QEgress"),
 			Scheme: mgr.GetScheme(),
 		},

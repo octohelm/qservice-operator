@@ -21,7 +21,7 @@ release.#Release & {
 			}
 			spec: {
 				envs: {
-					K2: "123"
+					K: "123"
 				}
 				image: "nginx:alpine"
 				ports: ["80"]

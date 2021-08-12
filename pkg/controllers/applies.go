@@ -12,6 +12,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -58,6 +59,8 @@ func applyResource(ctx context.Context, ro runtime.Object) error {
 		return err
 	}
 
+	gvk := obj.GetObjectKind().GroupVersionKind()
+
 	live, _ := DeepCopyClientObject(obj)
 
 	if err := c.Get(ctx, client.ObjectKeyFromObject(obj), live); err != nil {
@@ -68,7 +71,7 @@ func applyResource(ctx context.Context, ro runtime.Object) error {
 	}
 
 	if !controllerutil.IsControllerGenerationEqual(live, obj) {
-		return c.Patch(ctx, obj, PatchFor(live))
+		return c.Patch(ctx, obj, PatchFor(gvk, live))
 	}
 
 	return nil
@@ -83,12 +86,14 @@ func ClientObject(ro runtime.Object) (client.Object, error) {
 }
 
 func DeepCopyClientObject(object client.Object) (client.Object, error) {
-	return ClientObject(object.DeepCopyObject())
+	c, err := ClientObject(object.DeepCopyObject())
+	if err != nil {
+		return nil, err
+	}
+	return c, nil
 }
 
-func PatchFor(live client.Object) client.Patch {
-	gvk := live.GetObjectKind().GroupVersionKind()
-
+func PatchFor(gvk schema.GroupVersionKind, live client.Object) client.Patch {
 	if gvk.Group == corev1.GroupName && gvk.Kind == "Service" {
 		return client.Merge
 	}
@@ -98,5 +103,22 @@ func PatchFor(live client.Object) client.Patch {
 		return client.StrategicMergeFrom(live)
 	}
 
-	return client.MergeFrom(live)
+	return client.MergeFromWithOptions(live, client.MergeFromWithOptimisticLock{})
+}
+
+func ClientWithoutCache(c client.Client, r client.Reader) client.Client {
+	return &clientWithoutCache{Client: c, r: r}
+}
+
+type clientWithoutCache struct {
+	r client.Reader
+	client.Client
+}
+
+func (c *clientWithoutCache) Get(ctx context.Context, key client.ObjectKey, obj client.Object) error {
+	return c.r.Get(ctx, key, obj)
+}
+
+func (c *clientWithoutCache) List(ctx context.Context, key client.ObjectList, opts ...client.ListOption) error {
+	return c.r.List(ctx, key, opts...)
 }

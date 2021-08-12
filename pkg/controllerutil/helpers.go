@@ -45,14 +45,15 @@ func AnnotateControllerGeneration(annotations map[string]string, generation int6
 	return annotations
 }
 
-type contextKeyControllerClient int
+type contextKeyControllerClient struct {
+}
 
 func ContextWithControllerClient(ctx context.Context, client client.Client) context.Context {
-	return context.WithValue(ctx, contextKeyControllerClient(1), client)
+	return context.WithValue(ctx, contextKeyControllerClient{}, client)
 }
 
 func ControllerClientFromContext(ctx context.Context) client.Client {
-	if i, ok := ctx.Value(contextKeyControllerClient(1)).(client.Client); ok {
+	if i, ok := ctx.Value(contextKeyControllerClient{}).(client.Client); ok {
 		return i
 	}
 	return nil
