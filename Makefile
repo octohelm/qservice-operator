@@ -14,6 +14,10 @@ DOCKER_BUILDX_BUILD = docker buildx build \
 	--label=org.opencontainers.image.revision=$(COMMIT_SHA) \
 	--platform=linux/arm64,linux/amd64
 
+ifeq ($(PUSH),true)
+	DOCKER_BUILDX_BUILD := $(DOCKER_BUILDX_BUILD) --push
+endif
+
 up:
 	KUBECONFIG=~/.kube/config--hw-sg.yaml \
 	INGRESS_GATEWAYS=auto-internal:hw-sg.rktl.xyz \
