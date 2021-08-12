@@ -5,6 +5,14 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.10.8](https://github.com/octohelm/qservice-operator/compare/v0.10.7...v0.10.8)
+
+### Bug Fixes
+
+* **fix** auto merge patch stratege ([6e75c90](https://github.com/octohelm/qservice-operator/commit/6e75c9014cda152a94ff68b3383aeb9fce4360bc))
+
+
+
 # [0.10.7](https://github.com/octohelm/qservice-operator/compare/v0.10.6...v0.10.7)
 
 ### Bug Fixes
