@@ -5,10 +5,10 @@ import (
 )
 
 qservice_operator & {
-	#context: "hw-dev"
+	#context: "hw-sg"
 
 	#values: ingressGateways: {
-		"auto-internal": "hw-dev.rktl.xyz"
-		external:        "hw-dev.querycap.com"
+		"auto-internal": "hw-sg.rktl.xyz"
+		external:        "hw-sg.querycap.com"
 	}
 }

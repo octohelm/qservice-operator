@@ -14,10 +14,14 @@ DOCKER_BUILDX_BUILD = docker buildx build \
 	--label=org.opencontainers.image.revision=$(COMMIT_SHA) \
 	--platform=linux/arm64,linux/amd64
 
-run:
-	INGRESS_GATEWAYS=auto-internal:hw-infra.rktl.xyz \
+up:
+	KUBECONFIG=~/.kube/config--hw-sg.yaml \
+	INGRESS_GATEWAYS=auto-internal:hw-sg.rktl.xyz \
 	WATCH_NAMESPACE=default \
 	go run ./cmd/qservice-operator/main.go
+
+fmt:
+	goimports -l -w .
 
 build:
 	goreleaser build --snapshot --rm-dist
@@ -32,6 +36,8 @@ eval:
 apply.example:
 	cuem k apply ./deploy/qservice-opreator.cue
 
+apply.demo:
+	cuem k apply ./deploy/qservice.cue
 
 gen-deepcopy:
 	deepcopy-gen \

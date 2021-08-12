@@ -3,8 +3,6 @@ package controllers
 import (
 	"context"
 
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
 	"github.com/octohelm/qservice-operator/pkg/apis/serving/v1alpha1"
 	"github.com/octohelm/qservice-operator/pkg/controllerutil"
 	istioneteworkingv1alpha3 "istio.io/client-go/pkg/apis/networking/v1alpha3"
@@ -12,145 +10,93 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func applyDeployment(ctx context.Context, deployment *appsv1.Deployment) error {
-	c := controllerutil.ControllerClientFromContext(ctx)
-
-	current := &appsv1.Deployment{}
-
-	err := c.Get(ctx, types.NamespacedName{Name: deployment.Name, Namespace: deployment.Namespace}, current)
-	if err != nil {
-		if !apierrors.IsNotFound(err) {
-			return err
-		}
-		return c.Create(ctx, deployment)
-	}
-
-	if !controllerutil.IsControllerGenerationEqual(current, deployment) {
-		return c.Patch(ctx, deployment, client.Merge)
-	}
-
-	return nil
+	deployment.SetGroupVersionKind(appsv1.SchemeGroupVersion.WithKind("Deployment"))
+	return applyResource(ctx, deployment)
 }
 
 func applyIngress(ctx context.Context, ingress *networkingv1.Ingress) error {
-	c := controllerutil.ControllerClientFromContext(ctx)
-
-	current := &networkingv1.Ingress{}
-
-	err := c.Get(ctx, types.NamespacedName{Name: ingress.Name, Namespace: ingress.Namespace}, current)
-	if err != nil {
-		if !apierrors.IsNotFound(err) {
-			return err
-		}
-		return c.Create(ctx, ingress)
-	}
-
-	if !controllerutil.IsControllerGenerationEqual(current, ingress) {
-		return c.Patch(ctx, ingress, client.Merge)
-	}
-
-	return nil
+	ingress.SetGroupVersionKind(corev1.SchemeGroupVersion.WithKind("Ingress"))
+	return applyResource(ctx, ingress)
 }
 
 func applyService(ctx context.Context, service *corev1.Service) error {
-	c := controllerutil.ControllerClientFromContext(ctx)
-
-	current := &corev1.Service{}
-
-	err := c.Get(ctx, types.NamespacedName{Name: service.Name, Namespace: service.Namespace}, current)
-	if err != nil {
-		if !apierrors.IsNotFound(err) {
-			return err
-		}
-		return c.Create(ctx, service)
-	}
-
-	if !controllerutil.IsControllerGenerationEqual(current, service) {
-		return c.Patch(ctx, service, client.Merge)
-	}
-
-	return nil
+	service.SetGroupVersionKind(corev1.SchemeGroupVersion.WithKind("Service"))
+	return applyResource(ctx, service)
 }
 
 func applySecret(ctx context.Context, secret *corev1.Secret) error {
-	c := controllerutil.ControllerClientFromContext(ctx)
-
-	current := &corev1.Secret{}
-
-	err := c.Get(ctx, types.NamespacedName{Name: secret.Name, Namespace: secret.Namespace}, current)
-	if err != nil {
-		if !apierrors.IsNotFound(err) {
-			return err
-		}
-		return c.Create(ctx, secret)
-	}
-
-	if !controllerutil.IsControllerGenerationEqual(current, secret) {
-		return c.Patch(ctx, secret, client.Merge)
-	}
-
-	return nil
+	secret.SetGroupVersionKind(corev1.SchemeGroupVersion.WithKind("Secret"))
+	return applyResource(ctx, secret)
 }
 
 func applyVirtualService(ctx context.Context, vs *istioneteworkingv1alpha3.VirtualService) error {
-	c := controllerutil.ControllerClientFromContext(ctx)
-
-	current := &istioneteworkingv1alpha3.VirtualService{}
-
-	err := c.Get(ctx, types.NamespacedName{Name: vs.Name, Namespace: vs.Namespace}, current)
-	if err != nil {
-		if !apierrors.IsNotFound(err) {
-			return err
-		}
-		return c.Create(ctx, vs)
-	}
-
-	if !controllerutil.IsControllerGenerationEqual(current, vs) {
-		return c.Patch(ctx, vs, client.Merge)
-	}
-
-	return nil
+	vs.SetGroupVersionKind(istioneteworkingv1alpha3.SchemeGroupVersion.WithKind("VirtualService"))
+	return applyResource(ctx, vs)
 }
 
 func applyServiceEntry(ctx context.Context, se *istioneteworkingv1alpha3.ServiceEntry) error {
+	se.SetGroupVersionKind(istioneteworkingv1alpha3.SchemeGroupVersion.WithKind("ServiceEntry"))
+	return applyResource(ctx, se)
+}
+
+func applyQIngress(ctx context.Context, qingress *v1alpha1.QIngress) error {
+	qingress.SetGroupVersionKind(v1alpha1.SchemeGroupVersion.WithKind("QIngress"))
+	return applyResource(ctx, qingress)
+}
+
+func applyResource(ctx context.Context, ro runtime.Object) error {
 	c := controllerutil.ControllerClientFromContext(ctx)
 
-	current := &istioneteworkingv1alpha3.ServiceEntry{}
-
-	err := c.Get(ctx, types.NamespacedName{Name: se.Name, Namespace: se.Namespace}, current)
+	obj, err := ClientObject(ro)
 	if err != nil {
-		if !apierrors.IsNotFound(err) {
-			return err
-		}
-		return c.Create(ctx, se)
+		return err
 	}
 
-	if !controllerutil.IsControllerGenerationEqual(current, se) {
-		return c.Patch(ctx, se, client.Merge)
+	live, _ := DeepCopyClientObject(obj)
+
+	if err := c.Get(ctx, client.ObjectKeyFromObject(obj), live); err != nil {
+		if apierrors.IsNotFound(err) {
+			return c.Create(ctx, obj)
+		}
+		return err
+	}
+
+	if !controllerutil.IsControllerGenerationEqual(live, obj) {
+		return c.Patch(ctx, obj, PatchFor(live))
 	}
 
 	return nil
 }
 
-func applyQIngress(ctx context.Context, qingress *v1alpha1.QIngress) error {
-	c := controllerutil.ControllerClientFromContext(ctx)
-
-	current := &v1alpha1.QIngress{}
-
-	err := c.Get(ctx, types.NamespacedName{Name: qingress.Name, Namespace: qingress.Namespace}, current)
+func ClientObject(ro runtime.Object) (client.Object, error) {
+	o, err := meta.Accessor(ro)
 	if err != nil {
-		if !apierrors.IsNotFound(err) {
-			return err
-		}
-		return c.Create(ctx, qingress)
+		return nil, err
+	}
+	return o.(client.Object), nil
+}
+
+func DeepCopyClientObject(object client.Object) (client.Object, error) {
+	return ClientObject(object.DeepCopyObject())
+}
+
+func PatchFor(live client.Object) client.Patch {
+	gvk := live.GetObjectKind().GroupVersionKind()
+
+	if gvk.Group == corev1.GroupName && gvk.Kind == "Service" {
+		return client.Merge
 	}
 
-	if !controllerutil.IsControllerGenerationEqual(current, qingress) {
-		return c.Patch(ctx, qingress, client.Merge)
+	// TODO handle more
+	if gvk.Group == corev1.GroupName || gvk.Group == appsv1.GroupName {
+		return client.StrategicMergeFrom(live)
 	}
 
-	return nil
+	return client.MergeFrom(live)
 }

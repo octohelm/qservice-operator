@@ -4,6 +4,8 @@ go 1.16
 
 require (
 	cloud.google.com/go v0.91.1 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/evanphx/json-patch v4.11.0+incompatible // indirect
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-courier/ptr v1.0.1
 	github.com/go-courier/reflectx v1.3.4

@@ -2,11 +2,12 @@ package strfmt
 
 import (
 	"fmt"
+	"net/url"
+	"strings"
+
 	"github.com/go-courier/ptr"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
-	"net/url"
-	"strings"
 )
 
 var (

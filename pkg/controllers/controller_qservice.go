@@ -8,25 +8,25 @@ import (
 	"reflect"
 	"time"
 
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/selection"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
-	"sigs.k8s.io/controller-runtime/pkg/source"
-
 	"github.com/go-logr/logr"
 	servingv1alpha1 "github.com/octohelm/qservice-operator/pkg/apis/serving/v1alpha1"
 	"github.com/octohelm/qservice-operator/pkg/controllerutil"
 	"github.com/octohelm/qservice-operator/pkg/converter"
 	"github.com/octohelm/qservice-operator/pkg/strfmt"
+	pkgerrors "github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/selection"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
 // QServiceReconciler reconciles a QService object
@@ -228,19 +228,19 @@ func (r *QServiceReconciler) applyQService(ctx context.Context, qsvc *servingv1a
 
 	if err := r.applyImagePullSecret(ctx, qsvc); err != nil {
 		appendServiceConditions("ImagePullSecret", err)
-		return err
+		return pkgerrors.Wrapf(err, "Apply ImagePullSecret")
 	}
 	appendServiceConditions("ImagePullSecret", nil)
 
 	if err := r.applyDeployment(ctx, qsvc); err != nil {
 		appendServiceConditions("Deployment", err)
-		return err
+		return pkgerrors.Wrapf(err, "Apply Deployment")
 	}
 	appendServiceConditions("Deployment", nil)
 
 	if err := r.applyService(ctx, qsvc); err != nil {
 		appendServiceConditions("Service", err)
-		return err
+		return pkgerrors.Wrapf(err, "Apply Service")
 	}
 	appendServiceConditions("Service", nil)
 

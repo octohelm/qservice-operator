@@ -1,8 +1,9 @@
 package controllerutil
 
 import (
-	"github.com/onsi/gomega"
 	"testing"
+
+	"github.com/onsi/gomega"
 )
 
 func TestParseGateways(t *testing.T) {

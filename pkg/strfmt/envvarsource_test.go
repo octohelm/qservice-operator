@@ -1,8 +1,9 @@
 package strfmt
 
 import (
-	"github.com/onsi/gomega"
 	"testing"
+
+	"github.com/onsi/gomega"
 )
 
 func TestParseEnvVarSource(t *testing.T) {
