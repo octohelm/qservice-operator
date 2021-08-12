@@ -5,6 +5,7 @@ import (
 
 	"github.com/octohelm/qservice-operator/pkg/apis/serving/v1alpha1"
 	"github.com/octohelm/qservice-operator/pkg/controllerutil"
+	pkgerrors "github.com/pkg/errors"
 	istioneteworkingv1alpha3 "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -18,37 +19,58 @@ import (
 
 func applyDeployment(ctx context.Context, deployment *appsv1.Deployment) error {
 	deployment.SetGroupVersionKind(appsv1.SchemeGroupVersion.WithKind("Deployment"))
-	return applyResource(ctx, deployment)
+	if err := applyResource(ctx, deployment); err != nil {
+		return pkgerrors.Wrap(err, "Apply Deployment")
+	}
+	return nil
 }
 
 func applyIngress(ctx context.Context, ingress *networkingv1.Ingress) error {
 	ingress.SetGroupVersionKind(corev1.SchemeGroupVersion.WithKind("Ingress"))
-	return applyResource(ctx, ingress)
+	if err := applyResource(ctx, ingress); err != nil {
+		return pkgerrors.Wrap(err, "Apply Ingress")
+	}
+	return nil
 }
 
 func applyService(ctx context.Context, service *corev1.Service) error {
 	service.SetGroupVersionKind(corev1.SchemeGroupVersion.WithKind("Service"))
-	return applyResource(ctx, service)
+	if err := applyResource(ctx, service); err != nil {
+		return pkgerrors.Wrap(err, "Apply Service")
+	}
+	return nil
 }
 
 func applySecret(ctx context.Context, secret *corev1.Secret) error {
 	secret.SetGroupVersionKind(corev1.SchemeGroupVersion.WithKind("Secret"))
-	return applyResource(ctx, secret)
+	if err := applyResource(ctx, secret); err != nil {
+		return pkgerrors.Wrap(err, "Apply Secret")
+	}
+	return nil
 }
 
 func applyVirtualService(ctx context.Context, vs *istioneteworkingv1alpha3.VirtualService) error {
 	vs.SetGroupVersionKind(istioneteworkingv1alpha3.SchemeGroupVersion.WithKind("VirtualService"))
-	return applyResource(ctx, vs)
+	if err := applyResource(ctx, vs); err != nil {
+		return pkgerrors.Wrap(err, "Apply VirtualService")
+	}
+	return nil
 }
 
 func applyServiceEntry(ctx context.Context, se *istioneteworkingv1alpha3.ServiceEntry) error {
 	se.SetGroupVersionKind(istioneteworkingv1alpha3.SchemeGroupVersion.WithKind("ServiceEntry"))
-	return applyResource(ctx, se)
+	if err := applyResource(ctx, se); err != nil {
+		return pkgerrors.Wrap(err, "Apply ServiceEntry")
+	}
+	return nil
 }
 
 func applyQIngress(ctx context.Context, qingress *v1alpha1.QIngress) error {
 	qingress.SetGroupVersionKind(v1alpha1.SchemeGroupVersion.WithKind("QIngress"))
-	return applyResource(ctx, qingress)
+	if err := applyResource(ctx, qingress); err != nil {
+		return pkgerrors.Wrap(err, "Apply QIngress")
+	}
+	return nil
 }
 
 func applyResource(ctx context.Context, ro runtime.Object) error {

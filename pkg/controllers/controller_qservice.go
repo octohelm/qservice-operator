@@ -13,7 +13,6 @@ import (
 	"github.com/octohelm/qservice-operator/pkg/controllerutil"
 	"github.com/octohelm/qservice-operator/pkg/converter"
 	"github.com/octohelm/qservice-operator/pkg/strfmt"
-	pkgerrors "github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -228,19 +227,19 @@ func (r *QServiceReconciler) applyQService(ctx context.Context, qsvc *servingv1a
 
 	if err := r.applyImagePullSecret(ctx, qsvc); err != nil {
 		appendServiceConditions("ImagePullSecret", err)
-		return pkgerrors.Wrapf(err, "Apply ImagePullSecret")
+		return err
 	}
 	appendServiceConditions("ImagePullSecret", nil)
 
 	if err := r.applyDeployment(ctx, qsvc); err != nil {
 		appendServiceConditions("Deployment", err)
-		return pkgerrors.Wrapf(err, "Apply Deployment")
+		return err
 	}
 	appendServiceConditions("Deployment", nil)
 
 	if err := r.applyService(ctx, qsvc); err != nil {
 		appendServiceConditions("Service", err)
-		return pkgerrors.Wrapf(err, "Apply Service")
+		return err
 	}
 	appendServiceConditions("Service", nil)
 

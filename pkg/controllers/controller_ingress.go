@@ -108,6 +108,11 @@ func toExportedVirtualServicesByIngress(ingress *networkingv1.Ingress) (vss []*i
 	for i := range ingress.Spec.Rules {
 		rule := ingress.Spec.Rules[i]
 
+		if rule.Host == "" || rule.Host == "*" {
+			// skip wild ingress
+			continue
+		}
+
 		vs := &istiov1alpha3.VirtualService{}
 		vs.Namespace = ingress.Namespace
 		vs.Name = ingress.Name
