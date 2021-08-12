@@ -5,7 +5,16 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.10.7](https://github.com/octohelm/qservice-operator/compare/v0.10.6...v0.10.7)
+
+### Bug Fixes
+
+* **fix** kubeclient patch fix ([1c54f0f](https://github.com/octohelm/qservice-operator/commit/1c54f0f20bd3f51572b31b19a84f152c4c4505d0))
+
+
+
 # [0.10.6](https://github.com/octohelm/qservice-operator/compare/v0.10.5...v0.10.6)
+
 
 
 # [0.10.5](https://github.com/octohelm/qservice-operator/compare/v0.10.4...v0.10.5)
