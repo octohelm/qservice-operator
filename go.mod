@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go v0.91.1 // indirect
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-courier/ptr v1.0.1
-	github.com/go-courier/reflectx v1.3.4
+	github.com/go-courier/reflectx v1.3.5
 	github.com/go-logr/logr v0.4.0
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
@@ -17,10 +17,8 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
 	go.uber.org/zap v1.19.0 // indirect
-	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d // indirect
 	golang.org/x/oauth2 v0.0.0-20210810183815-faf39c7919d5 // indirect
 	golang.org/x/sys v0.0.0-20210809222454-d867a43fc93e // indirect
-	golang.org/x/text v0.3.7 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	istio.io/api v0.0.0-20210810205915-f8889a346400
 	istio.io/client-go v1.10.3
