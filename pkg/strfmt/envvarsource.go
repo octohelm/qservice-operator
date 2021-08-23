@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/go-courier/ptr"
+	"github.com/go-courier/x/ptr"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 )

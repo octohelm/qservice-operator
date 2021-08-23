@@ -10,7 +10,7 @@ import (
 	"strings"
 	"text/scanner"
 
-	"github.com/go-courier/reflectx"
+	encodingx "github.com/go-courier/x/encoding"
 	autoscalingv2beta1 "k8s.io/api/autoscaling/v2beta1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -201,7 +201,7 @@ func marshalValues(v interface{}) (map[string]string, error) {
 			case resource.Quantity:
 				values[name] = fieldValue.String()
 			default:
-				b, err := reflectx.MarshalText(fieldRv)
+				b, err := encodingx.MarshalText(fieldRv)
 				if err != nil {
 					return nil, err
 				}
@@ -278,7 +278,7 @@ func unmarshalValues(values map[string]string, v interface{}) error {
 					fieldValue = s
 					fieldRv.Set(reflect.ValueOf(fieldValue))
 				default:
-					if err := reflectx.UnmarshalText(fieldRv, []byte(v)); err != nil {
+					if err := encodingx.UnmarshalText(fieldRv, []byte(v)); err != nil {
 						return err
 					}
 				}

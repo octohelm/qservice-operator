@@ -26,7 +26,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 
-	"github.com/go-courier/ptr"
+	"github.com/go-courier/x/ptr"
 	"github.com/go-logr/logr"
 	"github.com/octohelm/qservice-operator/pkg/strfmt"
 	appsv1 "k8s.io/api/apps/v1"
