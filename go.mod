@@ -4,13 +4,10 @@ go 1.16
 
 require (
 	cloud.google.com/go v0.91.1 // indirect
-	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/evanphx/json-patch v4.11.0+incompatible // indirect
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-courier/ptr v1.0.1
 	github.com/go-courier/reflectx v1.3.4
 	github.com/go-logr/logr v0.4.0
-	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/onsi/gomega v1.14.0
@@ -30,7 +27,7 @@ require (
 	istio.io/gogo-genproto v0.0.0-20210806192525-32ebb2f9006c // indirect
 	k8s.io/api v0.22.0
 	k8s.io/apiextensions-apiserver v0.22.0
-	k8s.io/apimachinery v0.22.0
+	k8s.io/apimachinery v0.22.1
 	k8s.io/client-go v0.22.0
 	k8s.io/klog/v2 v2.10.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20210527164424-3c818078ee3d // indirect
