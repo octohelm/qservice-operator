@@ -9,7 +9,7 @@ replace (
 
 require (
 	github.com/ghodss/yaml v1.0.0
-	github.com/go-courier/x v0.0.4
+	github.com/go-courier/x v0.0.6
 	github.com/go-logr/logr v0.4.0
 	github.com/onsi/gomega v1.16.0
 	github.com/pkg/errors v0.9.1
