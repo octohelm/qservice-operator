@@ -15,7 +15,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	gopkg.in/yaml.v2 v2.4.0
 	istio.io/api v0.0.0-20210819145325-4e216752748c
-	istio.io/client-go v1.11.0
+	istio.io/client-go v1.11.2
 	k8s.io/api v0.22.1
 	k8s.io/apiextensions-apiserver v0.22.1
 	k8s.io/apimachinery v0.22.1
