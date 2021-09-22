@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/go-courier/x/ptr"
+	"github.com/octohelm/x/ptr"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -42,7 +42,7 @@ func ToCRD(d *CustomResourceDefinition) *apiextensionsv1.CustomResourceDefinitio
 	crd.Spec.Scope = apiextensionsv1.NamespaceScoped
 
 	openapiSchema := &apiextensionsv1.JSONSchemaProps{
-		XPreserveUnknownFields: ptr.Bool(true),
+		XPreserveUnknownFields: ptr.Ptr(true),
 	}
 
 	crd.Spec.Names = crdNames

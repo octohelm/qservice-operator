@@ -51,7 +51,7 @@ func ParseAction(s string) (*Action, error) {
 }
 
 type Action struct {
-	v1.Handler
+	v1.ProbeHandler
 }
 
 func (Action) OpenAPISchemaType() []string { return []string{"string"} }

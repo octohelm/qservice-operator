@@ -59,10 +59,16 @@ func toContainer(s *QService, c Container) v1.Container {
 	if c.Lifecycle != nil {
 		container.Lifecycle = &v1.Lifecycle{}
 		if c.Lifecycle.PostStart != nil {
-			container.Lifecycle.PostStart = &c.Lifecycle.PostStart.Handler
+			container.Lifecycle.PostStart = &v1.LifecycleHandler{
+				Exec:    c.Lifecycle.PostStart.ProbeHandler.Exec,
+				HTTPGet: c.Lifecycle.PostStart.ProbeHandler.HTTPGet,
+			}
 		}
 		if c.Lifecycle.PreStop != nil {
-			container.Lifecycle.PreStop = &c.Lifecycle.PreStop.Handler
+			container.Lifecycle.PreStop = &v1.LifecycleHandler{
+				Exec:    c.Lifecycle.PostStart.ProbeHandler.Exec,
+				HTTPGet: c.Lifecycle.PostStart.ProbeHandler.HTTPGet,
+			}
 		}
 	}
 
@@ -182,7 +188,7 @@ func toContainerPorts(s *QService, ports []strfmt.PortForward) []v1.ContainerPor
 func toProbe(specProb *Probe) *v1.Probe {
 	p := &v1.Probe{}
 
-	p.Handler = specProb.Action.Handler
+	p.ProbeHandler = specProb.Action.ProbeHandler
 	p.InitialDelaySeconds = specProb.InitialDelaySeconds
 	p.TimeoutSeconds = specProb.TimeoutSeconds
 	p.PeriodSeconds = specProb.PeriodSeconds

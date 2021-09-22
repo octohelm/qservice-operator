@@ -3,29 +3,29 @@ package strfmt
 import (
 	"testing"
 
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 )
 
 func TestAction(t *testing.T) {
 	t.Run("parse & string http", func(t *testing.T) {
 		action, err := ParseAction("http://:80/healthy")
-		NewWithT(t).Expect(err).To(BeNil())
+		gomega.NewWithT(t).Expect(err).To(gomega.BeNil())
 
-		NewWithT(t).Expect(string(action.HTTPGet.Scheme)).To(Equal("HTTP"))
-		NewWithT(t).Expect(action.HTTPGet.Port.String()).To(Equal("80"))
-		NewWithT(t).Expect(action.HTTPGet.Host).To(Equal(""))
-		NewWithT(t).Expect(action.HTTPGet.Path).To(Equal("/healthy"))
+		gomega.NewWithT(t).Expect(string(action.HTTPGet.Scheme)).To(gomega.Equal("HTTP"))
+		gomega.NewWithT(t).Expect(action.HTTPGet.Port.String()).To(gomega.Equal("80"))
+		gomega.NewWithT(t).Expect(action.HTTPGet.Host).To(gomega.Equal(""))
+		gomega.NewWithT(t).Expect(action.HTTPGet.Path).To(gomega.Equal("/healthy"))
 
-		NewWithT(t).Expect(action.String()).To(Equal("http://:80/healthy"))
+		gomega.NewWithT(t).Expect(action.String()).To(gomega.Equal("http://:80/healthy"))
 	})
 
 	t.Run("parse & string tcp", func(t *testing.T) {
 		action, err := ParseAction("tcp://:22")
-		NewWithT(t).Expect(err).To(BeNil())
+		gomega.NewWithT(t).Expect(err).To(gomega.BeNil())
 
-		NewWithT(t).Expect(action.TCPSocket.Port.String()).To(Equal("22"))
-		NewWithT(t).Expect(action.TCPSocket.Host).To(Equal(""))
+		gomega.NewWithT(t).Expect(action.TCPSocket.Port.String()).To(gomega.Equal("22"))
+		gomega.NewWithT(t).Expect(action.TCPSocket.Host).To(gomega.Equal(""))
 
-		NewWithT(t).Expect(action.String()).To(Equal("tcp://:22"))
+		gomega.NewWithT(t).Expect(action.String()).To(gomega.Equal("tcp://:22"))
 	})
 }

@@ -137,7 +137,7 @@ type clientWithoutCache struct {
 	client.Client
 }
 
-func (c *clientWithoutCache) Get(ctx context.Context, key client.ObjectKey, obj client.Object) error {
+func (c *clientWithoutCache) Get(ctx context.Context, key client.ObjectKey, obj client.Object, opts ...client.GetOption) error {
 	return c.r.Get(ctx, key, obj)
 }
 
