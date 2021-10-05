@@ -22,7 +22,7 @@ require (
 	k8s.io/apimachinery v0.22.2
 	k8s.io/client-go v0.22.2
 	mvdan.cc/sh/v3 v3.3.1
-	sigs.k8s.io/controller-runtime v0.10.1
+	sigs.k8s.io/controller-runtime v0.10.2
 )
 
 require (
