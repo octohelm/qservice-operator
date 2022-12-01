@@ -7,7 +7,7 @@ require (
 	github.com/go-courier/x v0.1.2
 	github.com/go-logr/logr v1.2.3
 	github.com/octohelm/x v0.0.0-20220811034253-019992077a5d
-	github.com/onsi/gomega v1.20.1
+	github.com/onsi/gomega v1.24.1
 	github.com/pkg/errors v0.9.1
 	gopkg.in/yaml.v2 v2.4.0
 	istio.io/api v0.0.0-20221128172210-2df01fb1b9e4
